@@ -2,10 +2,12 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { logger } from 'hono/logger'
+import { createClient } from '@supabase/supabase-js'
 
-// Define Cloudflare bindings
+// Define environment variables
 type Bindings = {
-  DB: D1Database
+  SUPABASE_URL: string
+  SUPABASE_ANON_KEY: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -17,6 +19,18 @@ app.use('/api/*', cors())
 // Serve static files from public directory
 app.use('/static/*', serveStatic({ root: './public' }))
 
+// Helper function to create Supabase client
+function getSupabaseClient(c: any) {
+  const supabaseUrl = c.env.SUPABASE_URL
+  const supabaseKey = c.env.SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase credentials not configured')
+  }
+  
+  return createClient(supabaseUrl, supabaseKey)
+}
+
 // API Routes
 
 // Health check
@@ -24,59 +38,73 @@ app.get('/api/health', (c) => {
   return c.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    service: 'Samkraft API'
+    service: 'Samkraft API',
+    database: 'Supabase PostgreSQL'
   })
 })
 
 // Get all projects (with filters)
 app.get('/api/projects', async (c) => {
-  const { env } = c
-  const category = c.req.query('category')
-  const municipality = c.req.query('municipality')
-  const status = c.req.query('status') || 'active'
-
   try {
-    let query = 'SELECT * FROM projects WHERE status = ?'
-    const params: any[] = [status]
+    const supabase = getSupabaseClient(c)
+    const category = c.req.query('category')
+    const municipality = c.req.query('municipality')
+    const status = c.req.query('status') || 'active'
+
+    let query = supabase
+      .from('projects')
+      .select('*')
+      .eq('status', status)
+      .eq('visibility', 'public')
+      .order('created_at', { ascending: false })
+      .limit(50)
 
     if (category) {
-      query += ' AND category_primary = ?'
-      params.push(category)
+      query = query.eq('category_primary', category)
     }
 
     if (municipality) {
-      query += ' AND location_municipality = ?'
-      params.push(municipality)
+      query = query.eq('location_municipality', municipality)
     }
 
-    query += ' ORDER BY created_at DESC LIMIT 50'
+    const { data, error } = await query
 
-    const result = await env.DB.prepare(query).bind(...params).all()
+    if (error) {
+      console.error('Supabase error:', error)
+      return c.json({ 
+        success: false, 
+        error: 'Failed to fetch projects' 
+      }, 500)
+    }
     
     return c.json({ 
       success: true, 
-      data: result.results,
-      count: result.results.length 
+      data: data || [],
+      count: data?.length || 0
     })
   } catch (error) {
+    console.error('Error:', error)
     return c.json({ 
       success: false, 
-      error: 'Failed to fetch projects' 
+      error: 'Database connection failed. Check SUPABASE_URL and SUPABASE_ANON_KEY environment variables.' 
     }, 500)
   }
 })
 
 // Get single project by ID
 app.get('/api/projects/:id', async (c) => {
-  const { env } = c
-  const id = c.req.param('id')
-
   try {
-    const project = await env.DB.prepare(
-      'SELECT * FROM projects WHERE id = ?'
-    ).bind(id).first()
+    const supabase = getSupabaseClient(c)
+    const id = c.req.param('id')
 
-    if (!project) {
+    // Get project
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (projectError || !project) {
       return c.json({ 
         success: false, 
         error: 'Project not found' 
@@ -84,18 +112,20 @@ app.get('/api/projects/:id', async (c) => {
     }
 
     // Get project roles
-    const roles = await env.DB.prepare(
-      'SELECT * FROM project_roles WHERE project_id = ?'
-    ).bind(id).all()
+    const { data: roles, error: rolesError } = await supabase
+      .from('project_roles')
+      .select('*')
+      .eq('project_id', id)
 
     return c.json({ 
       success: true, 
       data: {
         ...project,
-        roles: roles.results
+        roles: roles || []
       }
     })
   } catch (error) {
+    console.error('Error:', error)
     return c.json({ 
       success: false, 
       error: 'Failed to fetch project' 
@@ -105,16 +135,25 @@ app.get('/api/projects/:id', async (c) => {
 
 // Get municipalities
 app.get('/api/municipalities', async (c) => {
-  const { env } = c
-
   try {
-    const result = await env.DB.prepare(
-      'SELECT * FROM municipalities WHERE active = 1 ORDER BY name'
-    ).all()
+    const supabase = getSupabaseClient(c)
+
+    const { data, error } = await supabase
+      .from('municipalities')
+      .select('*')
+      .eq('active', true)
+      .order('name')
+
+    if (error) {
+      return c.json({ 
+        success: false, 
+        error: 'Failed to fetch municipalities' 
+      }, 500)
+    }
 
     return c.json({ 
       success: true, 
-      data: result.results 
+      data: data || [] 
     })
   } catch (error) {
     return c.json({ 
@@ -126,25 +165,31 @@ app.get('/api/municipalities', async (c) => {
 
 // Get skills
 app.get('/api/skills', async (c) => {
-  const { env } = c
-  const category = c.req.query('category')
-
   try {
-    let query = 'SELECT * FROM skills'
-    const params: any[] = []
+    const supabase = getSupabaseClient(c)
+    const category = c.req.query('category')
+
+    let query = supabase
+      .from('skills')
+      .select('*')
+      .order('name')
 
     if (category) {
-      query += ' WHERE category = ?'
-      params.push(category)
+      query = query.eq('category', category)
     }
 
-    query += ' ORDER BY name'
+    const { data, error } = await query
 
-    const result = await env.DB.prepare(query).bind(...params).all()
+    if (error) {
+      return c.json({ 
+        success: false, 
+        error: 'Failed to fetch skills' 
+      }, 500)
+    }
 
     return c.json({ 
       success: true, 
-      data: result.results 
+      data: data || [] 
     })
   } catch (error) {
     return c.json({ 
@@ -156,19 +201,20 @@ app.get('/api/skills', async (c) => {
 
 // Get user portfolio (public)
 app.get('/api/users/:username/portfolio', async (c) => {
-  const { env } = c
-  const username = c.req.param('username')
-
   try {
-    // Get user info
-    const user = await env.DB.prepare(
-      `SELECT id, username, first_name, profile_photo_url, bio, 
-              location_municipality, impact_score, tier, created_at, languages
-       FROM users 
-       WHERE username = ? AND profile_visibility = 'public' AND deleted_at IS NULL`
-    ).bind(username).first()
+    const supabase = getSupabaseClient(c)
+    const username = c.req.param('username')
 
-    if (!user) {
+    // Get user info
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, username, first_name, profile_photo_url, bio, location_municipality, impact_score, tier, created_at, languages')
+      .eq('username', username)
+      .eq('profile_visibility', 'public')
+      .is('deleted_at', null)
+      .single()
+
+    if (userError || !user) {
       return c.json({ 
         success: false, 
         error: 'User not found or profile is private' 
@@ -176,43 +222,88 @@ app.get('/api/users/:username/portfolio', async (c) => {
     }
 
     // Get completed projects
-    const projects = await env.DB.prepare(
-      `SELECT p.*, pp.hours_logged, pp.rating_by_creator, pp.completed_at
-       FROM project_participants pp
-       JOIN projects p ON pp.project_id = p.id
-       WHERE pp.user_id = ? AND pp.status = 'completed'
-       ORDER BY pp.completed_at DESC`
-    ).bind(user.id).all()
+    const { data: participations, error: participationsError } = await supabase
+      .from('project_participants')
+      .select(`
+        hours_logged,
+        rating_by_creator,
+        completed_at,
+        projects (
+          id,
+          title,
+          category_primary,
+          location_municipality
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false })
 
     // Get certificates
-    const certificates = await env.DB.prepare(
-      `SELECT c.*, p.title as project_title
-       FROM certificates c
-       JOIN projects p ON c.project_id = p.id
-       WHERE c.user_id = ? AND c.revoked_at IS NULL
-       ORDER BY c.issued_at DESC`
-    ).bind(user.id).all()
+    const { data: certificates, error: certsError } = await supabase
+      .from('certificates')
+      .select(`
+        id,
+        certificate_hash,
+        skills_validated,
+        hours_contributed,
+        issued_at,
+        projects (
+          title
+        )
+      `)
+      .eq('user_id', user.id)
+      .is('revoked_at', null)
+      .order('issued_at', { ascending: false })
 
     // Get skills
-    const skills = await env.DB.prepare(
-      `SELECT s.name, s.category, us.proficiency, us.validated_at
-       FROM user_skills us
-       JOIN skills s ON us.skill_id = s.id
-       WHERE us.user_id = ?
-       ORDER BY s.category, s.name`
-    ).bind(user.id).all()
+    const { data: skillsData, error: skillsError } = await supabase
+      .from('user_skills')
+      .select(`
+        proficiency,
+        validated_at,
+        skills (
+          name,
+          category
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('skills(category)')
+
+    const projects = participations?.map(p => ({
+      ...p.projects,
+      hours_logged: p.hours_logged,
+      rating_by_creator: p.rating_by_creator,
+      completed_at: p.completed_at
+    })) || []
+
+    const certs = certificates?.map(c => ({
+      id: c.id,
+      certificate_hash: c.certificate_hash,
+      skills_validated: c.skills_validated,
+      hours_contributed: c.hours_contributed,
+      issued_at: c.issued_at,
+      project_title: c.projects?.title
+    })) || []
+
+    const skills = skillsData?.map(s => ({
+      name: s.skills?.name,
+      category: s.skills?.category,
+      proficiency: s.proficiency,
+      validated_at: s.validated_at
+    })) || []
 
     return c.json({ 
       success: true, 
       data: {
         user,
-        projects: projects.results,
-        certificates: certificates.results,
-        skills: skills.results,
+        projects,
+        certificates: certs,
+        skills,
         stats: {
-          total_projects: projects.results.length,
-          total_certificates: certificates.results.length,
-          total_skills: skills.results.length,
+          total_projects: projects.length,
+          total_certificates: certs.length,
+          total_skills: skills.length,
           impact_score: user.impact_score
         }
       }
@@ -228,21 +319,36 @@ app.get('/api/users/:username/portfolio', async (c) => {
 
 // Verify certificate
 app.get('/api/certificates/verify/:hash', async (c) => {
-  const { env } = c
-  const hash = c.req.param('hash')
-
   try {
-    const certificate = await env.DB.prepare(
-      `SELECT c.*, u.first_name, u.username, p.title as project_title,
-              m.first_name as mentor_first_name, m.username as mentor_username
-       FROM certificates c
-       JOIN users u ON c.user_id = u.id
-       JOIN projects p ON c.project_id = p.id
-       JOIN users m ON c.mentor_id = m.id
-       WHERE c.certificate_hash = ? AND c.revoked_at IS NULL`
-    ).bind(hash).first()
+    const supabase = getSupabaseClient(c)
+    const hash = c.req.param('hash')
 
-    if (!certificate) {
+    const { data: certificate, error } = await supabase
+      .from('certificates')
+      .select(`
+        id,
+        certificate_hash,
+        skills_validated,
+        hours_contributed,
+        outcome_description,
+        issued_at,
+        users!user_id (
+          first_name,
+          username
+        ),
+        projects (
+          title
+        ),
+        mentors:users!mentor_id (
+          first_name,
+          username
+        )
+      `)
+      .eq('certificate_hash', hash)
+      .is('revoked_at', null)
+      .single()
+
+    if (error || !certificate) {
       return c.json({ 
         success: false, 
         error: 'Certificate not found or has been revoked',
@@ -253,7 +359,19 @@ app.get('/api/certificates/verify/:hash', async (c) => {
     return c.json({ 
       success: true,
       valid: true,
-      data: certificate
+      data: {
+        id: certificate.id,
+        certificate_hash: certificate.certificate_hash,
+        first_name: certificate.users?.first_name,
+        username: certificate.users?.username,
+        project_title: certificate.projects?.title,
+        skills_validated: certificate.skills_validated,
+        hours_contributed: certificate.hours_contributed,
+        outcome_description: certificate.outcome_description,
+        issued_at: certificate.issued_at,
+        mentor_first_name: certificate.mentors?.first_name,
+        mentor_username: certificate.mentors?.username
+      }
     })
   } catch (error) {
     return c.json({ 
@@ -263,7 +381,7 @@ app.get('/api/certificates/verify/:hash', async (c) => {
   }
 })
 
-// Homepage
+// Homepage (same as before)
 app.get('/', (c) => {
   return c.html(`
     <!DOCTYPE html>
@@ -484,6 +602,9 @@ app.get('/', (c) => {
                         <p class="text-sm">
                             Bygg gemenskap genom verifierade volontärprojekt
                         </p>
+                        <p class="text-xs mt-2 text-gray-500">
+                            Powered by Supabase PostgreSQL
+                        </p>
                     </div>
                     
                     <div>
@@ -533,7 +654,7 @@ app.get('/', (c) => {
   `)
 })
 
-// Projects page
+// Projects page (same structure as before)
 app.get('/projects', (c) => {
   return c.html(`
     <!DOCTYPE html>

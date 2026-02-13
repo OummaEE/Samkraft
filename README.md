@@ -112,7 +112,18 @@ samkraft/
 └── wrangler.jsonc             # Cloudflare configuration
 ```
 
-## 🗄️ Database Schema
+## 🗄️ Database - Supabase PostgreSQL
+
+**Current:** Using **Supabase** (PostgreSQL) instead of Cloudflare D1
+
+**Why Supabase?**
+- ✅ More powerful than SQLite (PostgreSQL)
+- ✅ Built-in authentication (JWT)
+- ✅ Real-time subscriptions
+- ✅ File storage for certificates
+- ✅ Row-Level Security (RLS)
+- ✅ Free tier: 500MB database, 2GB storage
+- ✅ Auto-generated REST API
 
 ### Core Tables
 
@@ -136,60 +147,53 @@ samkraft/
 4. **Municipality Representative** - Sponsor projects, access analytics
 5. **Platform Administrator** - System management
 
-## 🌍 Deployment to Cloudflare Pages
+## 🌍 Deployment to Cloudflare Pages + Supabase
 
-### Prerequisites
+**See detailed guide:** [SUPABASE_DEPLOYMENT.md](SUPABASE_DEPLOYMENT.md)
 
-1. **Create Cloudflare D1 Database:**
-   ```bash
-   npx wrangler d1 create samkraft-db
-   ```
-   
-   Copy the `database_id` and update `wrangler.jsonc`:
-   ```jsonc
-   "d1_databases": [
-     {
-       "binding": "DB",
-       "database_name": "samkraft-db",
-       "database_id": "YOUR_DATABASE_ID_HERE"
-     }
-   ]
-   ```
+### Quick Steps:
 
-2. **Apply migrations to production:**
-   ```bash
-   npm run db:migrate:prod
-   ```
+1. **Create Supabase project:**
+   - Go to https://supabase.com/ → New project
+   - Copy your `Project URL` and `anon key`
 
-3. **Create Cloudflare Pages project:**
-   ```bash
-   npx wrangler pages project create samkraft --production-branch main
-   ```
+2. **Run SQL migration:**
+   - Open Supabase SQL Editor
+   - Copy content from `supabase_schema.sql`
+   - Run the migration
 
-4. **Deploy:**
-   ```bash
-   npm run deploy:prod
-   ```
-
-### Continuous Deployment
-
-Connect your GitHub repository to Cloudflare Pages for automatic deployments on push:
-
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Navigate to Pages > Create a project
-3. Connect your GitHub repository
-4. Configure build settings:
+3. **Deploy to Cloudflare Pages:**
+   - Connect GitHub repository
    - Build command: `npm run build`
-   - Build output directory: `dist`
-   - Environment variable: Link D1 database
+   - Build output: `dist`
+   - Add environment variables:
+     - `SUPABASE_URL` = your project URL
+     - `SUPABASE_ANON_KEY` = your anon key
+
+4. **Verify:**
+   ```bash
+   curl https://samkraft.pages.dev/api/health
+   ```
+
+### Environment Variables
+
+**Local development (.dev.vars):**
+```env
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+**Production (Cloudflare Pages):**
+Add the same variables in Settings → Environment variables
 
 ## 📊 Data Architecture
 
 ### Storage Services
 
-- **Cloudflare D1** - Primary database (SQLite at edge)
-- **Cloudflare KV** - Session caching (future)
-- **Cloudflare R2** - File storage for certificates/photos (future)
+- **Supabase PostgreSQL** - Primary database (relational data)
+- **Supabase Storage** - File storage for certificates/photos (future)
+- **Supabase Auth** - JWT authentication (Phase 1)
+- **Supabase Realtime** - WebSocket subscriptions for messaging (Phase 2)
 
 ### Data Models
 
@@ -197,6 +201,7 @@ Connect your GitHub repository to Cloudflare Pages for automatic deployments on 
 - Project lifecycle: draft → review → approved → active → completed
 - Certificate verification via cryptographic hashing
 - Impact score algorithm tracking contribution quality
+- Row-Level Security (RLS) for data privacy
 
 ## 🔒 Security & Privacy
 
