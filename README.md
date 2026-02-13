@@ -28,14 +28,23 @@ Samkraft is a civic-tech platform designed to bridge the integration gap in Swed
 
 - Node.js 18+ and npm
 - Cloudflare account (for deployment)
+- Supabase account (free tier is sufficient)
 - Git
+
+### ⚡ Fast Track: Credentials Already Configured
+
+**✅ Supabase credentials are already set up in this project!**
+
+- `.dev.vars` file created with your Supabase URL and anon key
+- Ready for local development
+- See [CREDENTIALS_SETUP.md](CREDENTIALS_SETUP.md) for deployment instructions
 
 ### Local Development
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/samkraft.git
-   cd samkraft
+   git clone https://github.com/OummaEE/Samkraft.git
+   cd Samkraft
    ```
 
 2. **Install dependencies:**
@@ -43,11 +52,12 @@ Samkraft is a civic-tech platform designed to bridge the integration gap in Swed
    npm install
    ```
 
-3. **Set up local database:**
-   ```bash
-   npm run db:migrate:local
-   npm run db:seed
-   ```
+3. **Apply database schema to Supabase:**
+   - Open https://supabase.com/dashboard/project/dltfprkqyzxyyvfejrdy
+   - Go to SQL Editor → New query
+   - Copy content from `supabase_schema.sql`
+   - Run the migration
+   - **See:** [CREDENTIALS_SETUP.md](CREDENTIALS_SETUP.md) for detailed steps
 
 4. **Build the project:**
    ```bash
@@ -56,11 +66,11 @@ Samkraft is a civic-tech platform designed to bridge the integration gap in Swed
 
 5. **Start development server:**
    ```bash
-   # Using PM2 (recommended for sandbox)
-   pm2 start ecosystem.config.cjs
+   # Using wrangler (automatically uses .dev.vars)
+   npx wrangler pages dev dist --port 3000
 
-   # Or using wrangler directly
-   npm run dev:d1
+   # Or using PM2 (recommended for sandbox)
+   pm2 start ecosystem.config.cjs
    ```
 
 6. **Access the application:**
@@ -149,30 +159,38 @@ samkraft/
 
 ## 🌍 Deployment to Cloudflare Pages + Supabase
 
-**See detailed guide:** [SUPABASE_DEPLOYMENT.md](SUPABASE_DEPLOYMENT.md)
+**✅ CREDENTIALS READY!** See: [CREDENTIALS_SETUP.md](CREDENTIALS_SETUP.md)
+
+**See full deployment guide:** [SUPABASE_DEPLOYMENT.md](SUPABASE_DEPLOYMENT.md)
 
 ### Quick Steps:
 
-1. **Create Supabase project:**
-   - Go to https://supabase.com/ → New project
-   - Copy your `Project URL` and `anon key`
+1. **✅ Supabase project already created:**
+   - Project URL: `https://dltfprkqyzxyyvfejrdy.supabase.co`
+   - Credentials configured in `.dev.vars`
 
-2. **Run SQL migration:**
-   - Open Supabase SQL Editor
+2. **Apply SQL schema to Supabase:**
+   - Open https://supabase.com/dashboard/project/dltfprkqyzxyyvfejrdy/editor
+   - Go to SQL Editor → New query
    - Copy content from `supabase_schema.sql`
    - Run the migration
+   - Verify tables created (12 tables should appear)
 
 3. **Deploy to Cloudflare Pages:**
-   - Connect GitHub repository
+   - Connect GitHub repository: https://github.com/OummaEE/Samkraft
    - Build command: `npm run build`
    - Build output: `dist`
    - Add environment variables:
-     - `SUPABASE_URL` = your project URL
-     - `SUPABASE_ANON_KEY` = your anon key
+     - `SUPABASE_URL` = `https://dltfprkqyzxyyvfejrdy.supabase.co`
+     - `SUPABASE_ANON_KEY` = (copy from `.dev.vars` or [CREDENTIALS_SETUP.md](CREDENTIALS_SETUP.md))
 
-4. **Verify:**
+4. **Verify deployment:**
    ```bash
    curl https://samkraft.pages.dev/api/health
+   # Should return: {"status":"ok","database":"Supabase PostgreSQL"}
+   
+   curl https://samkraft.pages.dev/api/municipalities
+   # Should return 3 municipalities
    ```
 
 ### Environment Variables
