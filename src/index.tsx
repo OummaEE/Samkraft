@@ -2,6 +2,8 @@
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { createClient } from '@supabase/supabase-js'
+// @ts-expect-error Vite resolves ?client at build time.
+import clientScript from './main.tsx?client'
 
 // Define environment variables
 type Bindings = {
@@ -405,31 +407,22 @@ function renderAppShell(supabaseUrl: string, supabaseAnonKey: string) {
     <body>
       <div id="root"></div>
       <script>window.__SAMKRAFT_ENV__ = ${envJson};</script>
-      <script type="module" src="/src/main.tsx"></script>
+      <script type="module" src="${clientScript}"></script>
     </body>
     </html>
   `
 }
 
-const frontendRoutes = [
-  '/',
-  '/login',
-  '/register',
-  '/dashboard',
-  '/projects',
-  '/projects/:id',
-  '/profile/edit',
-  '/profile/:username',
-  '/my-projects',
-  '/applications'
-]
-
-for (const route of frontendRoutes) {
-  app.get(route, (c) => {
-    return c.html(renderAppShell(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY))
-  })
-}
+// SPA fallback for any frontend route that is not an API endpoint.
+app.get('*', (c) => {
+  if (c.req.path.startsWith('/api/')) {
+    return c.notFound()
+  }
+  return c.html(renderAppShell(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY))
+})
 
 export default app
+
+
 
 

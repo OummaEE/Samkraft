@@ -8,3 +8,8 @@ declare global {
     }
   }
 }
+
+declare module '*.tsx?client' {
+  const clientPath: string
+  export default clientPath
+}
