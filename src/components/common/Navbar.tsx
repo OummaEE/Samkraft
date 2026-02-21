@@ -12,24 +12,37 @@ export default function Navbar() {
     navigate('/login')
   }
 
+  const close = () => setOpen(false)
+
   return (
     <header className="header">
       <nav className="container nav">
-        <Link to="/" className="brand">Samkraft</Link>
+        <Link to="/" className="brand">
+          Samkraft
+        </Link>
 
-        <button className="menu-toggle" aria-label="Öppna meny" onClick={() => setOpen((v) => !v)}>
-          Meny
+        <button
+          className="menu-toggle"
+          aria-label="Öppna meny"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? '✕' : '☰'}
         </button>
 
         <div className={`nav-links ${open ? 'open' : ''}`}>
-          <NavLink to="/" onClick={() => setOpen(false)}>Home</NavLink>
-          <NavLink to="/projects" onClick={() => setOpen(false)}>Projekt</NavLink>
-          {profile && <NavLink to="/dashboard" onClick={() => setOpen(false)}>Dashboard</NavLink>}
-          {profile && <NavLink to="/my-projects" onClick={() => setOpen(false)}>Mina projekt</NavLink>}
-          {profile && <NavLink to="/applications" onClick={() => setOpen(false)}>Ansökningar</NavLink>}
-          {profile && <NavLink to="/profile/edit" onClick={() => setOpen(false)}>Profil</NavLink>}
-          {!profile && <NavLink to="/login" onClick={() => setOpen(false)}>Logga in</NavLink>}
-          {!profile && <NavLink to="/register" onClick={() => setOpen(false)}>Registrera</NavLink>}
+          <NavLink to="/" onClick={close}>Hem</NavLink>
+          <NavLink to="/projects" onClick={close}>Projekt</NavLink>
+          {profile && <NavLink to="/dashboard" onClick={close}>Dashboard</NavLink>}
+          {profile && <NavLink to="/my-projects" onClick={close}>Mina projekt</NavLink>}
+          {profile && <NavLink to="/applications" onClick={close}>Ansökningar</NavLink>}
+          {profile && <NavLink to="/profile/edit" onClick={close}>Profil</NavLink>}
+          {!profile && <NavLink to="/login" onClick={close}>Logga in</NavLink>}
+          {!profile && (
+            <Link to="/register" className="btn btn-primary" onClick={close}>
+              Registrera
+            </Link>
+          )}
           {profile && (
             <button type="button" className="btn btn-secondary" onClick={handleLogout}>
               Logga ut
