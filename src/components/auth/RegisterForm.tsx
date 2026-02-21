@@ -15,14 +15,12 @@ export default function RegisterForm() {
   const [municipality, setMunicipality] = useState('')
   const [municipalities, setMunicipalities] = useState<Municipality[]>([])
   const [error, setError] = useState('')
-const { data } = await supabase.from('municipalities').select('*').eq('active', true)
 
   const { register, loading } = useAuth()
   const navigate = useNavigate()
 
-
   useEffect(() => {
-    const loadMunicipalities = async () => {
+    const load = async () => {
       try {
         const { data } = await supabase
           .from('municipalities')
@@ -30,11 +28,10 @@ const { data } = await supabase.from('municipalities').select('*').eq('active', 
           .eq('active', true)
         setMunicipalities(data || [])
       } catch (err) {
-        console.error(err)
+        console.error('Failed to load municipalities:', err)
       }
     }
-
-    loadMunicipalities()
+    load()
   }, [])
 
   const validate = () => {
@@ -61,7 +58,7 @@ const { data } = await supabase.from('municipalities').select('*').eq('active', 
         password,
         fullName,
         role,
-        municipality: municipality || undefined
+        municipality: municipality || undefined,
       })
       navigate('/dashboard')
     } catch (err: any) {
