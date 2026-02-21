@@ -1,36 +1,42 @@
 ﻿import { supabase } from './supabaseClient'
 import type { Project, ProjectFilters, ProjectParticipant } from '../types'
 
-function normalizeProject(project: any): Project {
+function normalizeProject(row: any): Project {
   return {
-    id: project.id,
-    title: project.title,
-    description_short: project.description_short ?? project.description_long ?? null,
-    category_primary: project.category_primary ?? null,
-    status: project.status,
-    max_participants: project.max_participants ?? 0,
-    created_by_id: project.created_by_id ?? project.creator_id,
-    location_municipality: project.location_municipality ?? null,
-    created_at: project.created_at,
-    current_participants: project.current_participants ?? 0,
-    skills_required: project.skills_required ?? []
+    id: row.id,
+    title: row.title,
+    description_short: row.description_short ?? row.description_long ?? null,
+    category_primary: row.category_primary ?? null,
+    status: row.status,
+    max_participants: row.max_participants ?? 0,
+    created_by_id: row.created_by_id ?? row.creator_id,
+    location_municipality: row.location_municipality ?? null,
+    created_at: row.created_at,
+    current_participants: row.current_participants ?? 0,
+    skills_required: row.skills_required ?? []
   }
 }
 
 export async function listProjectsFromApi(): Promise<Project[]> {
-  const response = await fetch('/api/projects?status=active')
-  if (!response.ok) throw new Error('Kunde inte hämta projekt')
-  const payload: any = await response.json()
-  return (payload.data || []).map(normalizeProject)
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return (data || []).map(normalizeProject)
 }
 
 export async function getProjectById(id: string): Promise<Project | null> {
-  const response = await fetch(`/api/projects/${id}`)
-  if (!response.ok) return null
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
 
-  const payload: any = await response.json()
-  if (!payload.data) return null
-  return normalizeProject(payload.data)
+  if (error) throw new Error(error.message)
+  return data ? normalizeProject(data) : null
 }
 
 export async function createProject(input: {
@@ -60,7 +66,6 @@ export async function applyToProject(input: ProjectParticipant) {
     status: input.status,
     created_at: new Date().toISOString()
   })
-
   if (error) throw error
 }
 
@@ -86,16 +91,25 @@ export async function getApplicationsByUser(userId: string) {
   return data || []
 }
 
-export function computeMatchScore(project: Project, userSkillNames: string[], userMunicipality?: string | null) {
+export function computeMatchScore(
+  project: Project,
+  userSkillNames: string[],
+  userMunicipality?: string | null
+) {
   const skills = project.skills_required || []
-  const overlap = skills.length === 0
-    ? 0.5
-    : skills.filter((s) => userSkillNames.includes(s)).length / skills.length
+  const overlap =
+    skills.length === 0
+      ? 0.5
+      : skills.filter((s) => userSkillNames.includes(s)).length / skills.length
 
-  const municipalityScore = userMunicipality && project.location_municipality === userMunicipality ? 1 : 0.35
-  const availabilityScore = (project.current_participants || 0) < (project.max_participants || 0) ? 1 : 0
+  const municipalityScore =
+    userMunicipality && project.location_municipality === userMunicipality ? 1 : 0.35
+  const availabilityScore =
+    (project.current_participants || 0) < (project.max_participants || 0) ? 1 : 0
 
-  return Math.round((overlap * 0.5 + municipalityScore * 0.3 + availabilityScore * 0.2) * 100)
+  return Math.round(
+    (overlap * 0.5 + municipalityScore * 0.3 + availabilityScore * 0.2) * 100
+  )
 }
 
 export function filterAndSortProjects(
@@ -104,17 +118,27 @@ export function filterAndSortProjects(
   userSkillNames: string[],
   userMunicipality?: string | null
 ) {
-  let result = projects.filter((project) => project.status === (filters.status || 'active'))
+  let result = projects.filter(
+    (project) => project.status === (filters.status || 'active')
+  )
 
   if (filters.municipality) {
-    result = result.filter((project) => project.location_municipality === filters.municipality)
+    result = result.filter(
+      (project) => project.location_municipality === filters.municipality
+    )
   }
 
   if (filters.category) {
-    result = result.filter((project) => project.category_primary === filters.category)
+    result = result.filter(
+      (project) => project.category_primary === filters.category
+    )
   }
 
-  result = result.filter((project) => (project.current_participants || 0) < (project.max_participants || Number.MAX_SAFE_INTEGER))
+  result = result.filter(
+    (project) =>
+      (project.current_participants || 0) <
+      (project.max_participants || Number.MAX_SAFE_INTEGER)
+  )
 
   if (filters.skills && filters.skills.length > 0) {
     result = result.filter((project) => {
@@ -130,11 +154,15 @@ export function filterAndSortProjects(
 
   const sortBy = filters.sortBy || 'best_match'
   if (sortBy === 'newest') {
-    return withScore.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+    return withScore.sort((a, b) =>
+      String(b.created_at || '').localeCompare(String(a.created_at || ''))
+    )
   }
 
   if (sortBy === 'popular') {
-    return withScore.sort((a, b) => (b.current_participants || 0) - (a.current_participants || 0))
+    return withScore.sort(
+      (a, b) => (b.current_participants || 0) - (a.current_participants || 0)
+    )
   }
 
   return withScore.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))

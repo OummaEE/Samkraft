@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState, type FormEvent } from 'react'
+import { supabase } from '../../services/supabaseClient'
 import type { Municipality, ProjectFilters, Skill } from '../../types'
 
 interface Props {
@@ -16,11 +17,12 @@ export default function ProjectSearch({ onSearch }: Props) {
   useEffect(() => {
     const bootstrap = async () => {
       try {
-        const [municipalityRes, skillRes] = await Promise.all([fetch('/api/municipalities'), fetch('/api/skills')])
-        const municipalitiesPayload: any = municipalityRes.ok ? await municipalityRes.json() : { data: [] }
-        const skillsPayload: any = skillRes.ok ? await skillRes.json() : { data: [] }
-        setMunicipalities(municipalitiesPayload.data || [])
-        setAllSkills(skillsPayload.data || [])
+        const [municipalityRes, skillRes] = await Promise.all([
+          supabase.from('municipalities').select('*').eq('active', true),
+          supabase.from('skills').select('*')
+        ])
+        setMunicipalities(municipalityRes.data || [])
+        setAllSkills(skillRes.data || [])
       } catch (error) {
         console.error(error)
       }
@@ -41,7 +43,9 @@ export default function ProjectSearch({ onSearch }: Props) {
   }
 
   const toggleSkill = (skill: string) => {
-    setSkills((prev) => (prev.includes(skill) ? prev.filter((item) => item !== skill) : [...prev, skill]))
+    setSkills((prev) =>
+      prev.includes(skill) ? prev.filter((item) => item !== skill) : [...prev, skill]
+    )
   }
 
   return (
@@ -50,22 +54,37 @@ export default function ProjectSearch({ onSearch }: Props) {
       <div className="filter-grid">
         <div className="form-row">
           <label htmlFor="filter-municipality">Kommun</label>
-          <select id="filter-municipality" value={municipality} onChange={(e) => setMunicipality(e.target.value)}>
+          <select
+            id="filter-municipality"
+            value={municipality}
+            onChange={(e) => setMunicipality(e.target.value)}
+          >
             <option value="">Alla kommuner</option>
             {municipalities.map((item) => (
-              <option key={item.id} value={item.name}>{item.name}</option>
+              <option key={item.id} value={item.name}>
+                {item.name}
+              </option>
             ))}
           </select>
         </div>
 
         <div className="form-row">
           <label htmlFor="filter-category">Kategori</label>
-          <input id="filter-category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="t.ex. social" />
+          <input
+            id="filter-category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder="t.ex. social"
+          />
         </div>
 
         <div className="form-row">
           <label htmlFor="sort-by">Sortera</label>
-          <select id="sort-by" value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}>
+          <select
+            id="sort-by"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+          >
             <option value="best_match">Bäst match</option>
             <option value="newest">Nyast</option>
             <option value="popular">Mest populär</option>
@@ -86,8 +105,9 @@ export default function ProjectSearch({ onSearch }: Props) {
         ))}
       </div>
 
-      <button type="submit" className="btn btn-primary">Sök</button>
+      <button type="submit" className="btn btn-primary">
+        Sök
+      </button>
     </form>
   )
 }
-

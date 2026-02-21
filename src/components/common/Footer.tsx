@@ -9,7 +9,6 @@
         <div>
           <h4>Kontakt</h4>
           <p>kontakt@samkraft.se</p>
-          <p>2026-02-21T12:00:00Z</p>
         </div>
       </div>
     </footer>

@@ -123,3 +123,57 @@ export async function setUserSkills(userId: string, items: Array<{ skill_id: str
   const { error } = await supabase.from('user_skills').insert(payload)
   if (error) throw error
 }
+
+export async function getMunicipalities() {
+  const { data, error } = await supabase
+    .from('municipalities')
+    .select('id, name, budget_allocated, budget_spent')
+    .order('name', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getSkills() {
+  const { data, error } = await supabase
+    .from('skills')
+    .select('id, name, category')
+    .order('name', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getPublicPortfolioByUserId(userId: string) {
+  const [projectsResult, certificatesResult, skillsResult] = await Promise.all([
+    supabase
+      .from('project_participants')
+      .select('project_id, hours_completed, status')
+      .eq('user_id', userId)
+      .eq('status', 'completed'),
+    supabase
+      .from('certificates')
+      .select('id')
+      .eq('user_id', userId),
+    supabase
+      .from('user_skills')
+      .select('skill_id')
+      .eq('user_id', userId)
+  ])
+
+  if (projectsResult.error) throw projectsResult.error
+  if (certificatesResult.error) throw certificatesResult.error
+  if (skillsResult.error) throw skillsResult.error
+
+  const completedProjects = projectsResult.data || []
+  const totalHours = completedProjects.reduce((sum: number, item: any) => sum + Number(item.hours_completed || 0), 0)
+
+  return {
+    stats: {
+      total_projects: completedProjects.length,
+      total_certificates: (certificatesResult.data || []).length,
+      total_skills: (skillsResult.data || []).length,
+      impact_score: totalHours
+    }
+  }
+}

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import UserProfileCard from '../components/profiles/UserProfile'
 import PortfolioView from '../components/profiles/PortfolioView'
 import { getProfileByUsername } from '../services/userService'
+import { supabase } from '../services/supabaseClient'
 
 export default function Profile() {
   const { username } = useParams()
@@ -16,12 +17,29 @@ export default function Profile() {
       const profileData = await getProfileByUsername(username)
       setProfile(profileData)
 
-      if (profileData?.username) {
-        const response = await fetch(`/api/users/${profileData.username}/portfolio`)
-        if (response.ok) {
-          const payload: any = await response.json()
-          setPortfolio(payload.data)
-        }
+      if (profileData) {
+        const [certRes, skillRes] = await Promise.all([
+          supabase
+            .from('certificates')
+            .select('id')
+            .eq('user_id', profileData.id),
+          supabase
+            .from('user_skills')
+            .select('id')
+            .eq('user_id', profileData.id)
+        ])
+
+        const totalCertificates = certRes.data?.length ?? 0
+        const totalSkills = skillRes.data?.length ?? 0
+
+        setPortfolio({
+          stats: {
+            total_projects: 0,
+            total_certificates: totalCertificates,
+            total_skills: totalSkills,
+            impact_score: 0
+          }
+        })
       }
     }
 

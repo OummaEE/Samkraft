@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../services/supabaseClient'
 import type { Municipality, UserRole } from '../../types'
 import RoleSelector from './RoleSelector'
 
@@ -21,10 +22,11 @@ export default function RegisterForm() {
   useEffect(() => {
     const loadMunicipalities = async () => {
       try {
-        const response = await fetch('/api/municipalities')
-        if (!response.ok) return
-        const payload: any = await response.json()
-        setMunicipalities(payload.data || [])
+        const { data } = await supabase
+          .from('municipalities')
+          .select('*')
+          .eq('active', true)
+        setMunicipalities(data || [])
       } catch (err) {
         console.error(err)
       }
@@ -71,12 +73,23 @@ export default function RegisterForm() {
 
       <div className="form-row">
         <label htmlFor="fullName">Full name</label>
-        <input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+        <input
+          id="fullName"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
       </div>
 
       <div className="form-row">
         <label htmlFor="register-email">E-post</label>
-        <input id="register-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input
+          id="register-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
       </div>
 
       <div className="form-row">
@@ -95,7 +108,11 @@ export default function RegisterForm() {
 
       <div className="form-row">
         <label htmlFor="municipality">Kommun</label>
-        <select id="municipality" value={municipality} onChange={(e) => setMunicipality(e.target.value)}>
+        <select
+          id="municipality"
+          value={municipality}
+          onChange={(e) => setMunicipality(e.target.value)}
+        >
           <option value="">Välj kommun</option>
           {municipalities.map((item) => (
             <option key={item.id} value={item.name}>
@@ -116,4 +133,3 @@ export default function RegisterForm() {
     </form>
   )
 }
-
