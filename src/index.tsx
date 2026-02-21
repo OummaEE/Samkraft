@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+﻿import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { logger } from 'hono/logger'
@@ -381,7 +381,7 @@ app.get('/api/certificates/verify/:hash', async (c) => {
   }
 })
 
-// Homepage (same as before)
+// Homepage
 app.get('/', (c) => {
   return c.html(`
     <!DOCTYPE html>
@@ -389,265 +389,168 @@ app.get('/', (c) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Samkraft - Din kompetens är värdefull</title>
-        <meta name="description" content="Digital plattform för invandrare och lokalbefolkning i Sverige att bygga gemenskap genom verifierade volontärprojekt">
-        <script src="https://cdn.tailwindcss.com"></script>
+        <title>Samkraft - Dina kompetenser är värdefulla</title>
+        <meta name="description" content="Bygg din portfolio genom verifierade volontärprojekt och skapa meningsfulla kopplingar genom Samkraft.">
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <link href="/static/styles.css" rel="stylesheet">
     </head>
-    <body class="bg-gray-50">
-        <!-- Header -->
-        <header class="bg-white shadow-sm">
-            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-handshake text-blue-600 text-2xl"></i>
-                        <h1 class="text-2xl font-bold text-gray-900">Samkraft</h1>
-                    </div>
-                    <div class="hidden md:flex space-x-6">
-                        <a href="#how-it-works" class="text-gray-600 hover:text-blue-600">Hur det fungerar</a>
-                        <a href="#projects" class="text-gray-600 hover:text-blue-600">Projekt</a>
-                        <a href="#about" class="text-gray-600 hover:text-blue-600">Om oss</a>
-                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                            Kom igång
-                        </button>
-                    </div>
-                    <div class="md:hidden">
-                        <button class="text-gray-600">
-                            <i class="fas fa-bars text-xl"></i>
-                        </button>
-                    </div>
+    <body>
+        <header class="site-header" id="home">
+            <nav class="site-nav">
+                <a href="#home" class="brand" data-scroll>
+                    <i class="fas fa-handshake"></i>
+                    <span>Samkraft</span>
+                </a>
+
+                <button type="button" id="mobile-menu-btn" class="menu-btn" aria-label="Öppna meny" aria-expanded="false">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div id="nav-links" class="nav-links">
+                    <a href="#home" data-scroll>Home</a>
+                    <a href="#om-samkraft" data-scroll>Om Samkraft</a>
+                    <a href="#signup" data-scroll>Gå med</a>
+                    <a href="#kontakt" data-scroll>Kontakt</a>
                 </div>
             </nav>
         </header>
 
-        <!-- Hero Section -->
-        <section class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 class="text-4xl md:text-5xl font-bold mb-6">
-                    Dina kompetenser är värdefulla.<br>
-                    <span class="text-blue-200">Även utan personnummer.</span>
-                </h2>
-                <p class="text-xl mb-8 text-blue-100 max-w-2xl mx-auto">
-                    Bygg din portfolio genom verifierade volontärprojekt. 
-                    Få officiella intyg. Skapa nätverk. Gör skillnad.
-                </p>
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Registrera dig
-                    </button>
-                    <button class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
-                        <i class="fas fa-play-circle mr-2"></i>
-                        Se hur det fungerar
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Value Propositions -->
-        <section class="py-16 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid md:grid-cols-3 gap-8">
-                    <div class="text-center">
-                        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-certificate text-blue-600 text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-3">Bygg din portfolio</h3>
-                        <p class="text-gray-600">
-                            Få verifierade bevis på dina kompetenser. 
-                            Officiella intyg som arbetsgivare litar på.
-                        </p>
-                    </div>
-                    
-                    <div class="text-center">
-                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-users text-green-600 text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-3">Möt svenskar & mentorer</h3>
-                        <p class="text-gray-600">
-                            Skapa nätverk som håller. Arbeta tillsammans med erfarna 
-                            mentorer och lokala invånare.
-                        </p>
-                    </div>
-                    
-                    <div class="text-center">
-                        <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fas fa-heart text-purple-600 text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-3">Gör skillnad lokalt</h3>
-                        <p class="text-gray-600">
-                            Dina timmar räknas. Bidra till samhället och 
-                            skapa mätbar påverkan i din kommun.
-                        </p>
+        <main>
+            <section class="hero section">
+                <div class="container">
+                    <h1>Dina kompetenser är värdefulla. Även utan personnummer.</h1>
+                    <p class="hero-value">Bygg din portfolio genom verifierade volontärprojekt</p>
+                    <p class="hero-copy">
+                        Samkraft kopplar samman människor, mentorer och lokala initiativ för att skapa konkreta resultat och nya möjligheter.
+                    </p>
+                    <div class="hero-actions">
+                        <button type="button" id="hero-scroll-btn" class="btn btn-secondary">Redo att börja?</button>
+                        <button type="button" id="hero-join-btn" class="btn btn-primary">Gå med i hundratals personer</button>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- How It Works -->
-        <section id="how-it-works" class="py-16 bg-gray-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-3xl font-bold text-center mb-12">Hur det fungerar</h2>
-                
-                <div class="grid md:grid-cols-3 gap-8">
-                    <div class="relative">
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <div class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4">
-                                1
+            <section class="section section-soft" id="om-samkraft">
+                <div class="container">
+                    <h2>Om Samkraft</h2>
+                    <div class="benefits-grid">
+                        <article class="card">
+                            <h3>Sociala kopplingar</h3>
+                            <p>Sociala kopplingar - minskar isolering</p>
+                        </article>
+                        <article class="card">
+                            <h3>Kompetensutveckling</h3>
+                            <p>Kompetensutveckling - nya karriärmöjligheter</p>
+                        </article>
+                        <article class="card">
+                            <h3>Positiv identitet</h3>
+                            <p>Positiv identitet - känna sig värderad</p>
+                        </article>
+                        <article class="card">
+                            <h3>Konstruktiva alternativ</h3>
+                            <p>Konstruktiva alternativ - meningsfulla initiativ</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="how-it-works">
+                <div class="container">
+                    <h2>Så fungerar Samkraft</h2>
+                    <ol class="steps-grid">
+                        <li class="card">
+                            <h3>1. Skapa en projektplattform</h3>
+                            <p>Digital plattform för att föreslå projekt som stärker lokalsamhället.</p>
+                        </li>
+                        <li class="card">
+                            <h3>2. Engagera volontärer och mentorer</h3>
+                            <p>Svenska medborgare och mentorer bidrar med stöd och erfarenhet.</p>
+                        </li>
+                        <li class="card">
+                            <h3>3. Genomföra projekt</h3>
+                            <p>Godkända idéer realiseras tillsammans med deltagare och partners.</p>
+                        </li>
+                        <li class="card">
+                            <h3>4. Utvärdering och spridning</h3>
+                            <p>Resultat utvärderas och deltagare får intyg på sin insats.</p>
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <section class="section section-soft cta-band">
+                <div class="container">
+                    <h2>Gå med i hundratals personer</h2>
+                    <p>Starta med ett enkelt formulär och bli en del av nästa volontärprojekt.</p>
+                    <button type="button" id="cta-join-btn" class="btn btn-primary">Gå med i hundratals personer</button>
+                </div>
+            </section>
+
+            <section class="section" id="signup">
+                <div class="container">
+                    <div class="signup-card" id="signup-card">
+                        <h2>Anmäl dig till Samkraft</h2>
+                        <form id="signup-form" novalidate>
+                            <div class="form-row">
+                                <label for="full-name">Full name *</label>
+                                <input type="text" id="full-name" name="fullName" required autocomplete="name">
+                                <p id="full-name-error" class="form-error hidden">Full name är obligatoriskt.</p>
                             </div>
-                            <h3 class="text-xl font-semibold mb-3">Registrera dig</h3>
-                            <p class="text-gray-600 mb-4">
-                                Inget personnummer krävs. Registrera dig med e-post eller telefonnummer. 
-                                Det tar bara 2 minuter.
-                            </p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>E-post eller telefon</li>
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>Välj språk (Svenska, engelska, arabiska, m.fl.)</li>
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>GDPR-säkert</li>
-                            </ul>
-                        </div>
-                        <div class="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                            <i class="fas fa-arrow-right text-blue-300 text-2xl"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="relative">
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <div class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4">
-                                2
+
+                            <div class="form-row">
+                                <label for="email">Email *</label>
+                                <input type="email" id="email" name="email" required autocomplete="email">
+                                <p id="email-error" class="form-error hidden">Ange en giltig e-postadress.</p>
                             </div>
-                            <h3 class="text-xl font-semibold mb-3">Hitta projekt</h3>
-                            <p class="text-gray-600 mb-4">
-                                Bläddra bland volontärprojekt i din kommun. 
-                                Sök efter dina intressen och kompetenser.
-                            </p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>Sociala projekt</li>
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>Utbildning & mentorskap</li>
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>Miljö & hållbarhet</li>
-                            </ul>
-                        </div>
-                        <div class="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                            <i class="fas fa-arrow-right text-blue-300 text-2xl"></i>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="bg-white p-6 rounded-lg shadow-md">
-                            <div class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4">
-                                3
+
+                            <div class="form-row">
+                                <label for="role">Roll *</label>
+                                <select id="role" name="role" required>
+                                    <option value="">Välj roll</option>
+                                    <option value="migrant">Jag är Migrant</option>
+                                    <option value="mentor">Svenska Mentor</option>
+                                    <option value="volontar">Volontär</option>
+                                </select>
+                                <p id="role-error" class="form-error hidden">Välj en roll.</p>
                             </div>
-                            <h3 class="text-xl font-semibold mb-3">Bygg din framtid</h3>
-                            <p class="text-gray-600 mb-4">
-                                Slutför projekt, samla intyg, få rekommendationsbrev. 
-                                Bygg en portfolio som öppnar dörrar.
+
+                            <div class="form-row">
+                                <label for="motivation">Message/Motivation</label>
+                                <textarea id="motivation" name="motivation" rows="4"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary submit-btn">Skicka anmälan</button>
+                            <p id="form-success" class="form-success hidden">
+                                Tack! Din anmälan är mottagen. Vi kontaktar dig snart.
                             </p>
-                            <ul class="text-sm text-gray-600 space-y-2">
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>Verifierade certifikat</li>
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>Rekommendationsbrev</li>
-                                <li><i class="fas fa-check text-green-500 mr-2"></i>Publik portfolio</li>
-                            </ul>
-                        </div>
+                        </form>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </main>
 
-        <!-- Featured Projects -->
-        <section id="projects" class="py-16 bg-white">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-3xl font-bold">Aktuella projekt</h2>
-                    <a href="/projects" class="text-blue-600 hover:underline">
-                        Se alla projekt <i class="fas fa-arrow-right ml-1"></i>
-                    </a>
+        <footer class="site-footer" id="kontakt">
+            <div class="container footer-inner">
+                <div>
+                    <h3>Samkraft</h3>
+                    <p>Bygg din portfolio genom verifierade volontärprojekt.</p>
                 </div>
-                
-                <div id="projects-container" class="grid md:grid-cols-3 gap-6">
-                    <!-- Projects will be loaded here via JavaScript -->
-                    <div class="text-center py-8 col-span-3">
-                        <i class="fas fa-spinner fa-spin text-3xl text-blue-600 mb-4"></i>
-                        <p class="text-gray-600">Laddar projekt...</p>
-                    </div>
+                <div>
+                    <h4>Kontakt</h4>
+                    <p><a href="mailto:kontakt@samkraft.se">kontakt@samkraft.se</a></p>
+                    <p><a href="tel:+46000000000">+46 00 000 00 00</a></p>
                 </div>
-            </div>
-        </section>
-
-        <!-- CTA Section -->
-        <section class="py-16 bg-blue-600 text-white">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 class="text-3xl font-bold mb-4">Redo att börja?</h2>
-                <p class="text-xl mb-8 text-blue-100">
-                    Gå med i hundratals personer som redan bygger sin framtid genom Samkraft
-                </p>
-                <button class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition text-lg">
-                    Registrera dig gratis
-                </button>
-                <p class="mt-4 text-sm text-blue-200">
-                    Inget personnummer krävs • Ingen kostnad • Starta direkt
-                </p>
-            </div>
-        </section>
-
-        <!-- Footer -->
-        <footer class="bg-gray-900 text-gray-300 py-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid md:grid-cols-4 gap-8">
-                    <div>
-                        <div class="flex items-center space-x-2 mb-4">
-                            <i class="fas fa-handshake text-blue-400 text-xl"></i>
-                            <h3 class="text-white font-bold text-lg">Samkraft</h3>
-                        </div>
-                        <p class="text-sm">
-                            Bygg gemenskap genom verifierade volontärprojekt
-                        </p>
-                        <p class="text-xs mt-2 text-gray-500">
-                            Powered by Supabase PostgreSQL
-                        </p>
-                    </div>
-                    
-                    <div>
-                        <h4 class="text-white font-semibold mb-4">För deltagare</h4>
-                        <ul class="space-y-2 text-sm">
-                            <li><a href="#" class="hover:text-white">Hitta projekt</a></li>
-                            <li><a href="#" class="hover:text-white">Hur det fungerar</a></li>
-                            <li><a href="#" class="hover:text-white">Skapa konto</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div>
-                        <h4 class="text-white font-semibold mb-4">För kommuner</h4>
-                        <ul class="space-y-2 text-sm">
-                            <li><a href="#" class="hover:text-white">Bli partner</a></li>
-                            <li><a href="#" class="hover:text-white">Se påverkan</a></li>
-                            <li><a href="#" class="hover:text-white">Kontakta oss</a></li>
-                        </ul>
-                    </div>
-                    
-                    <div>
-                        <h4 class="text-white font-semibold mb-4">Språk / Language</h4>
-                        <ul class="space-y-2 text-sm">
-                            <li><a href="#" class="text-white font-semibold">🇸🇪 Svenska</a></li>
-                            <li><a href="#" class="hover:text-white">🇬🇧 English</a></li>
-                            <li><a href="#" class="hover:text-white">🇸🇦 العربية</a></li>
-                            <li><a href="#" class="hover:text-white">🇺🇦 Українська</a></li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-                    <p class="text-sm">© 2026 Samkraft. Alla rättigheter förbehållna.</p>
-                    <div class="flex space-x-6 mt-4 md:mt-0">
-                        <a href="#" class="text-sm hover:text-white">Integritetspolicy</a>
-                        <a href="#" class="text-sm hover:text-white">Användarvillkor</a>
-                        <a href="#" class="text-sm hover:text-white">Kontakt</a>
-                    </div>
+                <div>
+                    <h4>Snabblänkar</h4>
+                    <p><a href="#home" data-scroll>Home</a></p>
+                    <p><a href="#om-samkraft" data-scroll>Om Samkraft</a></p>
+                    <p><a href="#signup" data-scroll>Gå med</a></p>
+                    <p><a href="#kontakt" data-scroll>Kontakt</a></p>
                 </div>
             </div>
+            <p class="copyright">© 2026 Samkraft</p>
         </footer>
 
-        <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
         <script src="/static/app.js"></script>
     </body>
     </html>
@@ -696,7 +599,7 @@ app.get('/projects', (c) => {
                             <option value="">Alla kategorier</option>
                             <option value="social">Socialt</option>
                             <option value="education">Utbildning</option>
-                            <option value="environmental">Miljö</option>
+                            <option value="environmental">MiljÃ¶</option>
                             <option value="technology">Teknik</option>
                         </select>
                     </div>
@@ -721,7 +624,7 @@ app.get('/projects', (c) => {
                     <div class="flex items-end">
                         <button id="apply-filters" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                             <i class="fas fa-search mr-2"></i>
-                            Sök
+                            SÃ¶k
                         </button>
                     </div>
                 </div>
@@ -771,7 +674,7 @@ app.get('/projects', (c) => {
                       <span>\${project.current_participants || 0} / \${project.max_participants || 0} deltagare</span>
                     </div>
                     <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                      Läs mer
+                      LÃ¤s mer
                     </button>
                   </div>
                 </div>
@@ -809,3 +712,4 @@ app.get('/projects', (c) => {
 })
 
 export default app
+
