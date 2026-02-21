@@ -16,19 +16,12 @@ import { useAuth } from './hooks/useAuth'
 
 function ProtectedRoute() {
   const { authUser, loading } = useAuth()
-
-  if (loading) {
-    return <main className="container section"><p>Laddar...</p></main>
-  }
-
-  if (!authUser) {
-    return <Navigate to="/login" replace />
-  }
-
+  if (loading) return <main className="container section"><p>Laddar...</p></main>
+  if (!authUser) return <Navigate to="/login" replace />
   return <Outlet />
 }
 
-function AppLayout() {
+function DefaultLayout() {
   return (
     <>
       <Navbar />
@@ -40,11 +33,26 @@ function AppLayout() {
   )
 }
 
+function FullWidthLayout() {
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+      <Footer />
+    </>
+  )
+}
+
 export default function App() {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      {/* Home gets full-width layout (hero is edge-to-edge) */}
+      <Route element={<FullWidthLayout />}>
         <Route path="/" element={<Home />} />
+      </Route>
+
+      {/* All other pages get container layout */}
+      <Route element={<DefaultLayout />}>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/projects" element={<Projects />} />

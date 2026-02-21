@@ -17,9 +17,7 @@ export default function Navbar() {
   return (
     <header className="header">
       <nav className="container nav">
-        <Link to="/" className="brand">
-          Samkraft
-        </Link>
+        <Link to="/" className="brand">Samkraft</Link>
 
         <button
           className="menu-toggle"
