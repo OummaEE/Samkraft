@@ -15,9 +15,11 @@ export default function RegisterForm() {
   const [municipality, setMunicipality] = useState('')
   const [municipalities, setMunicipalities] = useState<Municipality[]>([])
   const [error, setError] = useState('')
+const { data } = await supabase.from('municipalities').select('*').eq('active', true)
 
   const { register, loading } = useAuth()
   const navigate = useNavigate()
+
 
   useEffect(() => {
     const loadMunicipalities = async () => {
