@@ -298,49 +298,6 @@ textarea:focus-visible {
   z-index: 1;
 }
 
-.hero-doodles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.hero-doodle {
-  position: absolute;
-  opacity: 0.6;
-}
-
-.hero-doodle.smiley {
-  top: 12%;
-  left: 30%;
-  width: 36px;
-}
-
-.hero-doodle.heart {
-  top: 15%;
-  right: 25%;
-  width: 32px;
-}
-
-.hero-doodle.star-1 {
-  top: 30%;
-  left: 10%;
-  width: 28px;
-  animation: gentle-float 7s ease-in-out infinite;
-}
-
-.hero-doodle.star-2 {
-  bottom: 25%;
-  right: 12%;
-  width: 22px;
-  animation: gentle-float 9s ease-in-out infinite reverse;
-}
-
-@keyframes gentle-float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(5deg); }
-}
-
 .hero h1 {
   max-width: 720px;
   margin-left: auto;
@@ -359,6 +316,120 @@ textarea:focus-visible {
   flex-wrap: wrap;
   gap: var(--space-sm);
   justify-content: center;
+}
+
+/* ===== HERO DOODLE ANIMATIONS ===== */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(3deg); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(-2deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(8px, -6px) rotate(2deg); }
+  75% { transform: translate(-6px, 4px) rotate(-2deg); }
+}
+
+@keyframes fadeInDoodle {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 0.85; transform: scale(1); }
+}
+
+.hero-doodles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.hero-doodle {
+  position: absolute;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* Blob red — top left */
+.hero-doodle.blob-red {
+  width: 220px;
+  top: -40px;
+  left: -60px;
+  animation: floatSlow 8s ease-in-out infinite, fadeInDoodle 1s 0.2s forwards;
+}
+
+/* Blob yellow — bottom right */
+.hero-doodle.blob-yellow {
+  width: 200px;
+  bottom: -30px;
+  right: -50px;
+  animation: floatSlow 9s ease-in-out infinite 1s, fadeInDoodle 1s 0.4s forwards;
+}
+
+/* Stars top — right side */
+.hero-doodle.stars-top {
+  width: 100px;
+  top: 30px;
+  right: 80px;
+  animation: float 6s ease-in-out infinite, fadeInDoodle 1s 0.3s forwards;
+}
+
+/* Stars bottom — left side */
+.hero-doodle.stars-bottom {
+  width: 70px;
+  bottom: 80px;
+  left: 60px;
+  animation: float 7s ease-in-out infinite 0.5s, fadeInDoodle 1s 0.5s forwards;
+}
+
+/* Smiley — top right area */
+.hero-doodle.smiley {
+  width: 60px;
+  top: 50px;
+  right: 220px;
+  animation: pulse 4s ease-in-out infinite, fadeInDoodle 0.8s 0.6s forwards;
+}
+
+/* Magnifier — bottom left */
+.hero-doodle.magnifier {
+  width: 55px;
+  bottom: 60px;
+  left: 180px;
+  animation: drift 10s ease-in-out infinite, fadeInDoodle 1s 0.7s forwards;
+}
+
+/* Hand with pitcher — right middle */
+.hero-doodle.hand-pitcher {
+  width: 130px;
+  top: 50%;
+  right: 30px;
+  animation: float 7s ease-in-out infinite 0.3s, fadeInDoodle 1.2s 0.4s forwards;
+}
+
+/* Hand pointing — left middle */
+.hero-doodle.hand-pointing {
+  width: 90px;
+  top: 45%;
+  left: 20px;
+  animation: drift 8s ease-in-out infinite 0.5s, fadeInDoodle 1.2s 0.5s forwards;
+}
+
+/* People with idea — bottom center-right */
+.hero-doodle.people-idea {
+  width: 140px;
+  bottom: 20px;
+  right: 180px;
+  animation: floatSlow 9s ease-in-out infinite 0.7s, fadeInDoodle 1s 0.8s forwards;
 }
 
 /* ===== Feature Sections — editorial zigzag ===== */
@@ -973,6 +1044,44 @@ textarea { min-height: 130px; resize: vertical; }
 
   .form { max-width: 100%; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Hide complex doodles on mobile */
+  .hero-doodle.hand-pitcher,
+  .hero-doodle.hand-pointing,
+  .hero-doodle.people-idea,
+  .hero-doodle.magnifier {
+    display: none;
+  }
+
+  .hero-doodle.blob-red {
+    width: 140px;
+    top: -20px;
+    left: -30px;
+  }
+
+  .hero-doodle.blob-yellow {
+    width: 120px;
+    bottom: -15px;
+    right: -25px;
+  }
+
+  .hero-doodle.stars-top {
+    width: 60px;
+    top: 15px;
+    right: 20px;
+  }
+
+  .hero-doodle.stars-bottom {
+    width: 45px;
+    bottom: 40px;
+    left: 20px;
+  }
+
+  .hero-doodle.smiley {
+    width: 40px;
+    top: 20px;
+    right: 100px;
+  }
 }
 
 @media (max-width: 480px) {

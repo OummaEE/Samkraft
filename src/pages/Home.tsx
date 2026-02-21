@@ -7,19 +7,25 @@ export default function Home() {
 
   return (
     <>
-      {/* ===== HERO — grid-paper background ===== */}
+      {/* ===== HERO ===== */}
       <div className="hero">
         <div className="hero-doodles">
+          <img src="/images/decorative/blob-red.png" alt="" className="hero-doodle blob-red" />
+          <img src="/images/decorative/blob-yellow.png" alt="" className="hero-doodle blob-yellow" />
+          <img src="/images/decorative/stars.png" alt="" className="hero-doodle stars-top" />
+          <img src="/images/decorative/stars.png" alt="" className="hero-doodle stars-bottom" />
           <img src="/images/icons/smiley.png" alt="" className="hero-doodle smiley" />
-          <img src="/images/icons/heart.png" alt="" className="hero-doodle heart" />
-          <img src="/images/decorative/stars.png" alt="" className="hero-doodle star-1" />
-          <img src="/images/decorative/stars.png" alt="" className="hero-doodle star-2" />
+          <img src="/images/icons/magnifier.png" alt="" className="hero-doodle magnifier" />
+          <img src="/images/decorative/hand-pitcher.png" alt="" className="hero-doodle hand-pitcher" />
+          <img src="/images/decorative/hand-pointing.png" alt="" className="hero-doodle hand-pointing" />
+          <img src="/images/icons/people-idea.png" alt="" className="hero-doodle people-idea" />
         </div>
 
         <h1>Dina kompetenser är värdefulla. Även utan personnummer.</h1>
         <p className="lead">
-          Bygg din portfolio genom verifierade volontärprojekt — och visa vad du
-          kan, oavsett bakgrund.
+          Samkraft är en plattform för kommunerna <strong>Flen</strong> och{' '}
+          <strong>Katrineholm</strong>. Bygg din portfolio genom verifierade
+          volontärprojekt — och visa vad du kan, oavsett bakgrund.
         </p>
         <div className="hero-actions">
           {!authUser && (
@@ -44,12 +50,12 @@ export default function Home() {
         {/* ===== VALUE PROPS ===== */}
         <div className="section-grid">
           <article className="card">
-            <img src="/images/icons/people.png" alt="" />
+            <img src="/images/icons/people-idea.png" alt="" />
             <h3>Sociala kopplingar</h3>
             <p>Minskar isolering och bygger nätverk i ditt lokalsamhälle.</p>
           </article>
           <article className="card">
-            <img src="/images/icons/project.png" alt="" />
+            <img src="/images/icons/magnifier.png" alt="" />
             <h3>Kompetensutveckling</h3>
             <p>Nya karriärmöjligheter genom praktisk erfarenhet och mentorskap.</p>
           </article>
@@ -59,7 +65,7 @@ export default function Home() {
             <p>Känna sig värderad genom verkliga bidrag till samhället.</p>
           </article>
           <article className="card">
-            <img src="/images/icons/people.png" alt="" />
+            <img src="/images/icons/smiley.png" alt="" />
             <h3>Konstruktiva alternativ</h3>
             <p>Meningsfulla initiativ som stärker hela lokalsamhället.</p>
           </article>
@@ -138,7 +144,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* ===== TESTIMONIALS — full-width grid-paper ===== */}
       <Testimonials />
     </>
   )
