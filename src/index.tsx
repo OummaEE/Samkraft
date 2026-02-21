@@ -2,13 +2,14 @@
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { createClient } from '@supabase/supabase-js'
-// @ts-expect-error Vite resolves ?client at build time.
-import clientScript from './main.tsx?client'
 
 // Define environment variables
 type Bindings = {
   SUPABASE_URL: string
   SUPABASE_ANON_KEY: string
+  ASSETS: {
+    fetch: (request: Request) => Promise<Response>
+  }
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -389,39 +390,22 @@ app.get('/api/certificates/verify/:hash', async (c) => {
   }
 })
 
-function renderAppShell(supabaseUrl: string, supabaseAnonKey: string) {
-  const envJson = JSON.stringify({ supabaseUrl, supabaseAnonKey })
-    .replace(/</g, '\\u003c')
-    .replace(/>/g, '\\u003e')
-
-  return `
-    <!DOCTYPE html>
-    <html lang="sv">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Samkraft</title>
-      <meta name="description" content="Samkraft plattform för volontärprojekt, kompetens och lokalt samarbete.">
-      <link rel="icon" href="data:,">
-    </head>
-    <body>
-      <div id="root"></div>
-      <script>window.__SAMKRAFT_ENV__ = ${envJson};</script>
-      <script type="module" src="${clientScript}"></script>
-    </body>
-    </html>
-  `
-}
-
 // SPA fallback for any frontend route that is not an API endpoint.
-app.get('*', (c) => {
+app.get('*', async (c) => {
   if (c.req.path.startsWith('/api/')) {
     return c.notFound()
   }
-  return c.html(renderAppShell(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY))
-})
 
+  const assetResponse = await c.env.ASSETS.fetch(c.req.raw)
+  if (assetResponse.status !== 404) {
+    return assetResponse
+  }
+
+  const indexRequest = new Request(new URL('/index.html', c.req.url).toString(), c.req.raw)
+  return c.env.ASSETS.fetch(indexRequest)
+})
 export default app
+
 
 
 
