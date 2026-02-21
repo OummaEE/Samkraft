@@ -24,7 +24,7 @@ const initialState: AuthState = {
   authUser: null,
   profile: null,
   loading: true,
-  error: null
+  error: null,
 }
 
 function reducer(state: AuthState, action: AuthAction): AuthState {
@@ -55,8 +55,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   const loadProfile = async (userId: string) => {
-    const profile = await userService.getCurrentUserProfile(userId)
-    dispatch({ type: 'SET_PROFILE', payload: profile })
+    try {
+      const profile = await userService.getCurrentUserProfile(userId)
+      dispatch({ type: 'SET_PROFILE', payload: profile })
+    } catch (err) {
+      console.error('Failed to load profile:', err)
+      dispatch({ type: 'SET_PROFILE', payload: null })
+    }
   }
 
   const refreshProfile = async () => {
@@ -78,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await loadProfile(session.user.id)
         }
       } catch (error) {
-        console.error(error)
+        console.error('Init auth error:', error)
         dispatch({ type: 'SET_ERROR', payload: 'Kunde inte ladda session.' })
       } finally {
         if (mounted) dispatch({ type: 'SET_LOADING', payload: false })
@@ -88,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init()
 
     const {
-      data: { subscription }
+      data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       dispatch({ type: 'SET_AUTH', payload: { session, authUser: session?.user || null } })
       if (session?.user) {
@@ -113,15 +118,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = response.user
       if (!user) throw new Error('Registrering lyckades inte')
 
-      await userService.createProfile({
-        id: user.id,
-        email: input.email,
-        fullName: input.fullName,
-        role: input.role,
-        municipality: input.municipality
-      })
-
-      await loadProfile(user.id)
+      try {
+        await userService.createProfile({
+          id: user.id,
+          email: input.email,
+          fullName: input.fullName,
+          role: input.role,
+          municipality: input.municipality,
+        })
+        await loadProfile(user.id)
+      } catch (profileError: any) {
+        // Auth succeeded but profile creation failed — sign out to clean up
+        console.error('Profile creation failed, signing out:', profileError)
+        await authService.signOut()
+        dispatch({ type: 'SET_AUTH', payload: { session: null, authUser: null } })
+        dispatch({ type: 'SET_PROFILE', payload: null })
+        throw new Error('Kontot skapades men profilen kunde inte sparas. Försök igen.')
+      }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message || 'Kunde inte registrera användare.' })
       throw error
@@ -148,8 +161,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     dispatch({ type: 'SET_ERROR', payload: null })
-    await authService.signOut()
+    try {
+      await authService.signOut()
+    } catch (err) {
+      console.error('Logout error:', err)
+    }
+    dispatch({ type: 'SET_AUTH', payload: { session: null, authUser: null } })
     dispatch({ type: 'SET_PROFILE', payload: null })
+    dispatch({ type: 'SET_LOADING', payload: false })
   }
 
   const value = useMemo(
@@ -158,11 +177,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       login,
       logout,
-      refreshProfile
+      refreshProfile,
     }),
-    [state]
+    [state],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-
