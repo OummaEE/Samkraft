@@ -20,20 +20,24 @@ export default function RegisterForm() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const { data } = await supabase
-          .from('municipalities')
-          .select('*')
-          .eq('active', true)
-        setMunicipalities(data || [])
-      } catch (err) {
-        console.error('Failed to load municipalities:', err)
+  const load = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('municipalities')
+        .select('*')
+        .order('name')
+      if (error) {
+        console.error('municipalities error:', error)
+        return
       }
+      console.log('municipalities loaded:', data)
+      setMunicipalities(data || [])
+    } catch (err) {
+      console.error('Failed to load municipalities:', err)
     }
-    load()
-  }, [])
-
+  }
+  load()
+}, [])
   const validate = () => {
     if (!fullName.trim()) return 'Fullständigt namn är obligatoriskt.'
     if (!emailRegex.test(email)) return 'Ange en giltig e-postadress.'
