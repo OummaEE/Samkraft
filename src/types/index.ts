@@ -1,4 +1,26 @@
-﻿export type UserRole = 'migrant' | 'volunteer' | 'mentor' | 'municipality_admin'
+﻿export type UserRole = 'migrant' | 'volunteer' | 'mentor' | 'municipality_admin' | 'pending_admin'
+
+export type ProjectStatus = 'draft' | 'pending_review' | 'in_development' | 'active' | 'completed' | 'archived'
+
+export const PROJECT_CATEGORIES = [
+  { value: 'social', label: 'Social' },
+  { value: 'environmental', label: 'Miljö' },
+  { value: 'education', label: 'Utbildning' },
+  { value: 'culture', label: 'Kultur' },
+  { value: 'health', label: 'Hälsa' },
+  { value: 'technology', label: 'Teknik' },
+  { value: 'sports', label: 'Sport & Fritid' },
+  { value: 'other', label: 'Övrigt' },
+] as const
+
+export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  draft: 'Utkast',
+  pending_review: 'Väntar på godkännande',
+  in_development: 'Under utveckling',
+  active: 'Pågående',
+  completed: 'Avslutat',
+  archived: 'Arkiverat',
+}
 
 export interface UserProfile {
   id: string
@@ -16,8 +38,8 @@ export interface Municipality {
   id: string
   name: string
   budget_allocated: number | null
-  budget_spent: number | null 
-active?: boolean   // <-- добавь это
+  budget_spent: number | null
+  active?: boolean
 }
 
 export interface Skill {
@@ -39,7 +61,7 @@ export interface Project {
   title: string
   description_short: string | null
   category_primary: string | null
-  status: string
+  status: ProjectStatus
   max_participants: number | null
   created_by_id: string
   location_municipality: string | null
@@ -47,6 +69,14 @@ export interface Project {
   current_participants?: number
   skills_required?: string[]
   matchScore?: number
+  budget_cost?: number
+  budget_spent?: number
+  website_url?: string | null
+  attachment_url?: string | null
+  attachment_name?: string | null
+  result_summary?: string | null
+  result_photos?: string[]
+  completed_at?: string | null
 }
 
 export interface ProjectParticipant {
@@ -57,6 +87,17 @@ export interface ProjectParticipant {
   hours_completed: number
   status: 'pending' | 'accepted' | 'completed' | 'rejected'
   created_at?: string
+}
+
+export interface VolunteerHour {
+  id?: string
+  project_id: string
+  user_id: string
+  hours: number
+  description?: string
+  logged_at: string
+  created_at?: string
+  users?: { full_name: string; email: string }
 }
 
 export interface Certificate {

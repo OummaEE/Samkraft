@@ -1,10 +1,10 @@
 ﻿import type { UserRole } from '../../types'
 
-const options: Array<{ value: UserRole; label: string }> = [
+const options: Array<{ value: UserRole; label: string; hint?: string }> = [
   { value: 'migrant', label: 'Migrant' },
   { value: 'volunteer', label: 'Volontär' },
   { value: 'mentor', label: 'Mentor' },
-  { value: 'municipality_admin', label: 'Kommunadministratör' }
+  { value: 'pending_admin', label: 'Kommunadministratör', hint: '(kräver godkännande)' },
 ]
 
 interface Props {
@@ -19,7 +19,7 @@ export default function RoleSelector({ value, onChange }: Props) {
       <select id="role" value={value} onChange={(e) => onChange(e.target.value as UserRole)}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {option.label}{option.hint ? ` ${option.hint}` : ''}
           </option>
         ))}
       </select>
