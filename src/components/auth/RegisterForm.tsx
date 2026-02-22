@@ -16,37 +16,8 @@ export default function RegisterForm() {
   const [municipality, setMunicipality] = useState('')
   const [municipalities, setMunicipalities] = useState<Municipality[]>([])
   const [error, setError] = useState('')
-
-  // --- Turnstile ---
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
-const [honeypot, setHoneypot] = useState('')
-  {/* Honeypot — невидимое поле */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          left: '-9999px',
-          top: '-9999px',
-          width: '1px',
-          height: '1px',
-          opacity: 0,
-          overflow: 'hidden',
-          pointerEvents: 'none',
-        }}
-      >
-        <label htmlFor="hp_field">Fax</label>
-        <input
-          id="hp_field"
-          name="hp_field"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-          value={honeypot}
-          onChange={(e) => setHoneypot(e.target.value)}
-        />
-      </div>
-
-  // --- Timing (боты сабмитят за миллисекунды) ---
+  const [honeypot, setHoneypot] = useState('')
   const [formLoadedAt] = useState(Date.now())
 
   const { register, loading } = useAuth()
@@ -82,54 +53,30 @@ const [honeypot, setHoneypot] = useState('')
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-
-    // Honeypot check — если заполнено, тихо "успех"
-    if (honeypot) {
-      setError('')
-      return
-    }
-
-    // Timing check — менее 3 секунд = бот
+    if (honeypot) { setError(''); return }
     if (Date.now() - formLoadedAt < 3000) {
       setError('Något gick fel. Vänta en stund och försök igen.')
       return
     }
-
-    // Turnstile check
     if (!turnstileToken) {
       setError('Vänta tills säkerhetskontrollen är klar.')
       return
     }
-
     const validationError = validate()
-    if (validationError) {
-      setError(validationError)
-      return
-    }
-
+    if (validationError) { setError(validationError); return }
     setError('')
 
     try {
-      // Верифицируем Turnstile token на сервере
       const verifyRes = await fetch('/api/verify-turnstile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: turnstileToken }),
       })
-
       if (!verifyRes.ok) {
         setError('Säkerhetskontrollen misslyckades. Ladda om sidan och försök igen.')
         return
       }
-
-      // Turnstile пройден — регистрируем
-      await register({
-        email,
-        password,
-        fullName,
-        role,
-        municipality: municipality || undefined,
-      })
+      await register({ email, password, fullName, role, municipality: municipality || undefined })
       navigate('/dashboard')
     } catch (err: any) {
       setError(err.message || 'Registrering misslyckades.')
@@ -142,64 +89,49 @@ const [honeypot, setHoneypot] = useState('')
 
       <div className="form-row">
         <label htmlFor="fullName">Fullständigt namn</label>
-        <input
-          id="fullName"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          required
-        />
+        <input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
       </div>
 
       <div className="form-row">
         <label htmlFor="register-email">E-post</label>
-        <input
-          id="register-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <input id="register-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
       </div>
 
       <div className="form-row">
         <label htmlFor="register-password">Lösenord</label>
-        <input
-          id="register-password"
-          type="password"
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <input id="register-password" type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
 
       <RoleSelector value={role} onChange={setRole} />
 
       <div className="form-row">
         <label htmlFor="municipality">Kommun</label>
-        <select
-          id="municipality"
-          value={municipality}
-          onChange={(e) => setMunicipality(e.target.value)}
-        >
+        <select id="municipality" value={municipality} onChange={(e) => setMunicipality(e.target.value)}>
           <option value="">Välj kommun</option>
           {municipalities.map((item) => (
-            <option key={item.id} value={item.name}>
-              {item.name}
-            </option>
+            <option key={item.id} value={item.name}>{item.name}</option>
           ))}
         </select>
       </div>
 
-      {/* Honeypot — невидимое поле */}
+      {/* Honeypot — невидимое поле для ботов */}
       <div
         aria-hidden="true"
-        style={{ position: 'absolute', left: '-9999px', top: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }}
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}
       >
-        <label htmlFor="website">Website</label>
+        <label htmlFor="hp_field">Fax</label>
         <input
-          id="website"
-          name="website"
+          id="hp_field"
+          name="hp_field"
           type="text"
           tabIndex={-1}
           autoComplete="off"
@@ -208,13 +140,13 @@ const [honeypot, setHoneypot] = useState('')
         />
       </div>
 
-      {/* Turnstile CAPTCHA */}
       <TurnstileWidget
         onVerify={(token) => setTurnstileToken(token)}
         onExpire={() => setTurnstileToken(null)}
       />
 
       {error && <p className="error">{error}</p>}
+
       <button type="submit" className="btn btn-primary" disabled={loading || !turnstileToken}>
         {loading ? 'Skapar konto...' : 'Registrera'}
       </button>

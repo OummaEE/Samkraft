@@ -16,7 +16,8 @@ export interface Municipality {
   id: string
   name: string
   budget_allocated: number | null
-  budget_spent: number | null
+  budget_spent: number | null 
+active?: boolean   // <-- добавь это
 }
 
 export interface Skill {

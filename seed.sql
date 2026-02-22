@@ -1,25 +1,25 @@
--- Seed data for Samkraft platform
+-- Seed data for Samkraft platform (PostgreSQL / Supabase)
 
 -- Insert basic skills
 INSERT INTO skills (id, name, category, translated_names) VALUES
-  ('skill_001', 'Gardening', 'Environmental', '{"sv": "Trädgårdsarbete", "en": "Gardening"}'),
-  ('skill_002', 'Event Planning', 'Social', '{"sv": "Evenemangsplanering", "en": "Event Planning"}'),
-  ('skill_003', 'Teaching', 'Education', '{"sv": "Undervisning", "en": "Teaching"}'),
-  ('skill_004', 'Communication', 'Social', '{"sv": "Kommunikation", "en": "Communication"}'),
-  ('skill_005', 'Team Coordination', 'Social', '{"sv": "Teamkoordinering", "en": "Team Coordination"}'),
-  ('skill_006', 'Swedish Language', 'Languages', '{"sv": "Svenska språket", "en": "Swedish Language"}'),
-  ('skill_007', 'English Language', 'Languages', '{"sv": "Engelska språket", "en": "English Language"}'),
-  ('skill_008', 'Project Management', 'Professional', '{"sv": "Projektledning", "en": "Project Management"}'),
-  ('skill_009', 'Web Development', 'Technology', '{"sv": "Webbutveckling", "en": "Web Development"}'),
-  ('skill_010', 'Graphic Design', 'Creative', '{"sv": "Grafisk design", "en": "Graphic Design"}');
-  ON CONFLICT (name) DO NOTHING;
+  (gen_random_uuid(), 'Gardening', 'Environmental', '{"sv": "Trädgårdsarbete", "en": "Gardening"}'),
+  (gen_random_uuid(), 'Event Planning', 'Social', '{"sv": "Evenemangsplanering", "en": "Event Planning"}'),
+  (gen_random_uuid(), 'Teaching', 'Education', '{"sv": "Undervisning", "en": "Teaching"}'),
+  (gen_random_uuid(), 'Communication', 'Social', '{"sv": "Kommunikation", "en": "Communication"}'),
+  (gen_random_uuid(), 'Team Coordination', 'Social', '{"sv": "Teamkoordinering", "en": "Team Coordination"}'),
+  (gen_random_uuid(), 'Swedish Language', 'Languages', '{"sv": "Svenska språket", "en": "Swedish Language"}'),
+  (gen_random_uuid(), 'English Language', 'Languages', '{"sv": "Engelska språket", "en": "English Language"}'),
+  (gen_random_uuid(), 'Project Management', 'Professional', '{"sv": "Projektledning", "en": "Project Management"}'),
+  (gen_random_uuid(), 'Web Development', 'Technology', '{"sv": "Webbutveckling", "en": "Web Development"}'),
+  (gen_random_uuid(), 'Graphic Design', 'Creative', '{"sv": "Grafisk design", "en": "Graphic Design"}')
+ON CONFLICT (name) DO NOTHING;
 
--- Insert municipalities
+-- Insert municipalities (Flen & Katrineholm med omgivande orter)
 INSERT INTO municipalities (id, name, budget_allocated, active) VALUES
   (gen_random_uuid(), 'Flens kommun',         200000.00, true),
   (gen_random_uuid(), 'Katrineholms kommun',   200000.00, true),
   (gen_random_uuid(), 'Malmköping',            0.00, true),
-  (gen_random_uuid(), 'Hällefors',             0.00, true),
+  (gen_random_uuid(), 'Hälleforsnäs',          0.00, true),
   (gen_random_uuid(), 'Sparreholm',            0.00, true),
   (gen_random_uuid(), 'Bettna',                0.00, true),
   (gen_random_uuid(), 'Mellösa',               0.00, true),
@@ -30,9 +30,3 @@ INSERT INTO municipalities (id, name, budget_allocated, active) VALUES
   (gen_random_uuid(), 'Bie',                   0.00, true),
   (gen_random_uuid(), 'Strångsjö',             0.00, true)
 ON CONFLICT (name) DO NOTHING;
-
--- Insert demo users (passwords are bcrypt hashes of 'password123')
-INSERT OR IGNORE INTO users (id, email, username, password_hash, first_name, last_name, tier, location_municipality, languages, bio) VALUES 
-  ('user_001', 'admin@samkraft.se', 'admin', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYIKVWvRE.e', 'Admin', 'User', 'validated', 'Stockholms kommun', '["sv", "en"]', 'Platform administrator'),
-  ('user_002', 'mentor@example.com', 'mentor_anna', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYIKVWvRE.e', 'Anna', 'Andersson', 'validated', 'Stockholms kommun', '["sv", "en"]', 'Experienced mentor helping newcomers integrate'),
-  ('user_003', 'participant@example.com', 'new_participant', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYIKVWvRE.e', 'Ahmed', 'K', 'verified', 'Stockholms kommun', '["ar", "en"]', 'Looking forward to contributing to the community');
