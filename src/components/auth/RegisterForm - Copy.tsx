@@ -4,7 +4,6 @@ import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../services/supabaseClient'
 import type { Municipality, UserRole } from '../../types'
 import RoleSelector from './RoleSelector'
-import TurnstileWidget from './TurnstileWidget'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -17,37 +16,28 @@ export default function RegisterForm() {
   const [municipalities, setMunicipalities] = useState<Municipality[]>([])
   const [error, setError] = useState('')
 
-  // --- Turnstile ---
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
-
-  // --- Honeypot (скрытое поле — боты заполняют, люди нет) ---
-  const [honeypot, setHoneypot] = useState('')
-
-  // --- Timing (боты сабмитят за миллисекунды) ---
-  const [formLoadedAt] = useState(Date.now())
-
   const { register, loading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('municipalities')
-          .select('*')
-          .order('name')
-        if (error) {
-          console.error('municipalities error:', error)
-          return
-        }
-        setMunicipalities(data || [])
-      } catch (err) {
-        console.error('Failed to load municipalities:', err)
+  const load = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('municipalities')
+        .select('*')
+        .order('name')
+      if (error) {
+        console.error('municipalities error:', error)
+        return
       }
+      console.log('municipalities loaded:', data)
+      setMunicipalities(data || [])
+    } catch (err) {
+      console.error('Failed to load municipalities:', err)
     }
-    load()
-  }, [])
-
+  }
+  load()
+}, [])
   const validate = () => {
     if (!fullName.trim()) return 'Fullständigt namn är obligatoriskt.'
     if (!emailRegex.test(email)) return 'Ange en giltig e-postadress.'
@@ -58,25 +48,6 @@ export default function RegisterForm() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-
-    // Honeypot check — если заполнено, тихо "успех"
-    if (honeypot) {
-      setError('')
-      return
-    }
-
-    // Timing check — менее 3 секунд = бот
-    if (Date.now() - formLoadedAt < 3000) {
-      setError('Något gick fel. Vänta en stund och försök igen.')
-      return
-    }
-
-    // Turnstile check
-    if (!turnstileToken) {
-      setError('Vänta tills säkerhetskontrollen är klar.')
-      return
-    }
-
     const validationError = validate()
     if (validationError) {
       setError(validationError)
@@ -86,19 +57,6 @@ export default function RegisterForm() {
     setError('')
 
     try {
-      // Верифицируем Turnstile token на сервере
-      const verifyRes = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: turnstileToken }),
-      })
-
-      if (!verifyRes.ok) {
-        setError('Säkerhetskontrollen misslyckades. Ladda om sidan och försök igen.')
-        return
-      }
-
-      // Turnstile пройден — регистрируем
       await register({
         email,
         password,
@@ -117,7 +75,7 @@ export default function RegisterForm() {
       <h2>Skapa konto</h2>
 
       <div className="form-row">
-        <label htmlFor="fullName">Fullständigt namn</label>
+        <label htmlFor="fullName">Full name</label>
         <input
           id="fullName"
           value={fullName}
@@ -167,31 +125,8 @@ export default function RegisterForm() {
         </select>
       </div>
 
-      {/* Honeypot — невидимое поле */}
-      <div
-        aria-hidden="true"
-        style={{ position: 'absolute', left: '-9999px', top: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }}
-      >
-        <label htmlFor="website">Website</label>
-        <input
-          id="website"
-          name="website"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-          value={honeypot}
-          onChange={(e) => setHoneypot(e.target.value)}
-        />
-      </div>
-
-      {/* Turnstile CAPTCHA */}
-      <TurnstileWidget
-        onVerify={(token) => setTurnstileToken(token)}
-        onExpire={() => setTurnstileToken(null)}
-      />
-
       {error && <p className="error">{error}</p>}
-      <button type="submit" className="btn btn-primary" disabled={loading || !turnstileToken}>
+      <button type="submit" className="btn btn-primary" disabled={loading}>
         {loading ? 'Skapar konto...' : 'Registrera'}
       </button>
 

@@ -1,13 +1,11 @@
 ﻿import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import TurnstileWidget from './TurnstileWidget'
 
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const { login, loading } = useAuth()
   const navigate = useNavigate()
 
@@ -20,23 +18,7 @@ export default function LoginForm() {
       return
     }
 
-    if (!turnstileToken) {
-      setError('Vänta tills säkerhetskontrollen är klar.')
-      return
-    }
-
     try {
-      const verifyRes = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: turnstileToken }),
-      })
-
-      if (!verifyRes.ok) {
-        setError('Säkerhetskontrollen misslyckades. Ladda om sidan och försök igen.')
-        return
-      }
-
       await login({ email, password })
       navigate('/dashboard')
     } catch (err: any) {
@@ -57,13 +39,8 @@ export default function LoginForm() {
         <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
 
-      <TurnstileWidget
-        onVerify={(token) => setTurnstileToken(token)}
-        onExpire={() => setTurnstileToken(null)}
-      />
-
       {error && <p className="error">{error}</p>}
-      <button type="submit" className="btn btn-primary" disabled={loading || !turnstileToken}>
+      <button type="submit" className="btn btn-primary" disabled={loading}>
         {loading ? 'Loggar in...' : 'Logga in'}
       </button>
 
@@ -73,3 +50,4 @@ export default function LoginForm() {
     </form>
   )
 }
+
