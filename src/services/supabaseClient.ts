@@ -13,6 +13,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
+    detectSessionInUrl: true,
+    flowType: 'implicit',
+    // ↓↓↓ ЭТО — ключевой фикс: отключаем Web Locks API ↓↓↓
+    lock: async (name: string, acquireTimeout: number, fn: () => Promise<any>) => {
+      // Простой in-memory lock без navigator.locks
+      return await fn()
+    },
+  },
 })
