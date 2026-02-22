@@ -19,7 +19,7 @@ export default function RegisterForm() {
 
   // --- Turnstile ---
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
-
+const [honeypot, setHoneypot] = useState('')
   {/* Honeypot — невидимое поле */}
       <div
         aria-hidden="true"
