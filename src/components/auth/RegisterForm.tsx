@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from 'react'
+﻿import { useEffect, useState, useRef, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../services/supabaseClient'
@@ -19,6 +19,7 @@ export default function RegisterForm() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [honeypot, setHoneypot] = useState('')
   const [formLoadedAt] = useState(Date.now())
+  const [turnstileKey, setTurnstileKey] = useState(0)
 
   const { register, loading } = useAuth()
   const navigate = useNavigate()
@@ -42,6 +43,11 @@ export default function RegisterForm() {
     }
     load()
   }, [])
+
+  const resetTurnstile = () => {
+    setTurnstileToken(null)
+    setTurnstileKey(prev => prev + 1)
+  }
 
   const validate = () => {
     if (!fullName.trim()) return 'Fullständigt namn är obligatoriskt.'
@@ -73,12 +79,14 @@ export default function RegisterForm() {
         body: JSON.stringify({ token: turnstileToken }),
       })
       if (!verifyRes.ok) {
-        setError('Säkerhetskontrollen misslyckades. Ladda om sidan och försök igen.')
+        resetTurnstile()
+        setError('Säkerhetskontrollen misslyckades. Vänta tills den laddas om och försök igen.')
         return
       }
       await register({ email, password, fullName, role, municipality: municipality || undefined })
       navigate('/dashboard')
     } catch (err: any) {
+      resetTurnstile()
       setError(err.message || 'Registrering misslyckades.')
     }
   }
@@ -114,7 +122,6 @@ export default function RegisterForm() {
         </select>
       </div>
 
-      {/* Honeypot — невидимое поле для ботов */}
       <div
         aria-hidden="true"
         style={{
@@ -141,6 +148,7 @@ export default function RegisterForm() {
       </div>
 
       <TurnstileWidget
+        key={turnstileKey}
         onVerify={(token) => setTurnstileToken(token)}
         onExpire={() => setTurnstileToken(null)}
       />
