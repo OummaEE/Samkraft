@@ -1,7 +1,7 @@
 -- Seed data for Samkraft platform
 
 -- Insert basic skills
-INSERT OR IGNORE INTO skills (id, name, category, translated_names) VALUES 
+INSERT INTO skills (id, name, category, translated_names) VALUES
   ('skill_001', 'Gardening', 'Environmental', '{"sv": "Trädgårdsarbete", "en": "Gardening"}'),
   ('skill_002', 'Event Planning', 'Social', '{"sv": "Evenemangsplanering", "en": "Event Planning"}'),
   ('skill_003', 'Teaching', 'Education', '{"sv": "Undervisning", "en": "Teaching"}'),
@@ -12,12 +12,24 @@ INSERT OR IGNORE INTO skills (id, name, category, translated_names) VALUES
   ('skill_008', 'Project Management', 'Professional', '{"sv": "Projektledning", "en": "Project Management"}'),
   ('skill_009', 'Web Development', 'Technology', '{"sv": "Webbutveckling", "en": "Web Development"}'),
   ('skill_010', 'Graphic Design', 'Creative', '{"sv": "Grafisk design", "en": "Graphic Design"}');
+  ON CONFLICT (name) DO NOTHING;
 
 -- Insert municipalities
-INSERT OR IGNORE INTO municipalities (id, name, budget_allocated, active) VALUES 
-  ('muni_001', 'Stockholms kommun', 500000.00, 1),
-  ('muni_002', 'Göteborgs kommun', 300000.00, 1),
-  ('muni_003', 'Malmö kommun', 250000.00, 1);
+INSERT INTO municipalities (id, name, budget_allocated, active) VALUES
+  (gen_random_uuid(), 'Flens kommun',         200000.00, true),
+  (gen_random_uuid(), 'Katrineholms kommun',   200000.00, true),
+  (gen_random_uuid(), 'Malmköping',            0.00, true),
+  (gen_random_uuid(), 'Hällefors',             0.00, true),
+  (gen_random_uuid(), 'Sparreholm',            0.00, true),
+  (gen_random_uuid(), 'Bettna',                0.00, true),
+  (gen_random_uuid(), 'Mellösa',               0.00, true),
+  (gen_random_uuid(), 'Vadsbro',               0.00, true),
+  (gen_random_uuid(), 'Björkvik',              0.00, true),
+  (gen_random_uuid(), 'Valla',                 0.00, true),
+  (gen_random_uuid(), 'Forssjö',               0.00, true),
+  (gen_random_uuid(), 'Bie',                   0.00, true),
+  (gen_random_uuid(), 'Strångsjö',             0.00, true)
+ON CONFLICT (name) DO NOTHING;
 
 -- Insert demo users (passwords are bcrypt hashes of 'password123')
 INSERT OR IGNORE INTO users (id, email, username, password_hash, first_name, last_name, tier, location_municipality, languages, bio) VALUES 

@@ -266,10 +266,21 @@ INSERT INTO skills (id, name, category, translated_names) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Municipalities
-INSERT INTO municipalities (id, name, budget_allocated, active) VALUES 
-  (uuid_generate_v4(), 'Stockholms kommun', 500000.00, true),
-  (uuid_generate_v4(), 'Göteborgs kommun', 300000.00, true),
-  (uuid_generate_v4(), 'Malmö kommun', 250000.00, true)
+-- Municipalities — Flen och Katrineholm med omgivande orter
+INSERT INTO municipalities (id, name, budget_allocated, active) VALUES
+  (uuid_generate_v4(), 'Flens kommun',         200000.00, true),
+  (uuid_generate_v4(), 'Katrineholms kommun',   200000.00, true),
+  (uuid_generate_v4(), 'Malmköping',            0.00, true),
+  (uuid_generate_v4(), 'Hällefors',             0.00, true),
+  (uuid_generate_v4(), 'Sparreholm',            0.00, true),
+  (uuid_generate_v4(), 'Bettna',                0.00, true),
+  (uuid_generate_v4(), 'Mellösa',               0.00, true),
+  (uuid_generate_v4(), 'Vadsbro',               0.00, true),
+  (uuid_generate_v4(), 'Björkvik',              0.00, true),
+  (uuid_generate_v4(), 'Valla',                 0.00, true),
+  (uuid_generate_v4(), 'Forssjö',               0.00, true),
+  (uuid_generate_v4(), 'Bie',                   0.00, true),
+  (uuid_generate_v4(), 'Strångsjö',             0.00, true)
 ON CONFLICT (name) DO NOTHING;
 
 -- Success message

@@ -20,8 +20,31 @@ export default function RegisterForm() {
   // --- Turnstile ---
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
-  // --- Honeypot (скрытое поле — боты заполняют, люди нет) ---
-  const [honeypot, setHoneypot] = useState('')
+  {/* Honeypot — невидимое поле */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: '-9999px',
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+          overflow: 'hidden',
+          pointerEvents: 'none',
+        }}
+      >
+        <label htmlFor="hp_field">Fax</label>
+        <input
+          id="hp_field"
+          name="hp_field"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+        />
+      </div>
 
   // --- Timing (боты сабмитят за миллисекунды) ---
   const [formLoadedAt] = useState(Date.now())
@@ -35,6 +58,7 @@ export default function RegisterForm() {
         const { data, error } = await supabase
           .from('municipalities')
           .select('*')
+          .eq('active', true)
           .order('name')
         if (error) {
           console.error('municipalities error:', error)

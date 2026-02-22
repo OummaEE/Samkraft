@@ -1,4 +1,4 @@
-﻿import { createContext, useEffect, useMemo, useReducer, type ReactNode } from 'react'
+﻿import { createContext, useCallback, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../services/supabaseClient'
 import * as authService from '../services/authService'
@@ -54,7 +54,11 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  const loadProfile = async (userId: string) => {
+  // Ref для доступа к актуальному state из стабильных функций
+  const stateRef = useRef(state)
+  stateRef.current = state
+
+  const loadProfile = useCallback(async (userId: string) => {
     try {
       const profile = await userService.getCurrentUserProfile(userId)
       dispatch({ type: 'SET_PROFILE', payload: profile })
@@ -62,12 +66,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Failed to load profile:', err)
       dispatch({ type: 'SET_PROFILE', payload: null })
     }
-  }
+  }, [])
 
-  const refreshProfile = async () => {
-    if (!state.authUser?.id) return
-    await loadProfile(state.authUser.id)
-  }
+  const refreshProfile = useCallback(async () => {
+    const userId = stateRef.current.authUser?.id
+    if (!userId) return
+    await loadProfile(userId)
+  }, [loadProfile])
 
   useEffect(() => {
     let mounted = true
@@ -108,9 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted = false
       subscription.unsubscribe()
     }
-  }, [])
+  }, [loadProfile])
 
-  const register = async (input: RegisterInput) => {
+  const register = useCallback(async (input: RegisterInput) => {
     dispatch({ type: 'SET_ERROR', payload: null })
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
@@ -128,7 +133,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
         await loadProfile(user.id)
       } catch (profileError: any) {
-        // Auth succeeded but profile creation failed — sign out to clean up
         console.error('Profile creation failed, signing out:', profileError)
         await authService.signOut()
         dispatch({ type: 'SET_AUTH', payload: { session: null, authUser: null } })
@@ -141,9 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }
+  }, [loadProfile])
 
-  const login = async (input: LoginInput) => {
+  const login = useCallback(async (input: LoginInput) => {
     dispatch({ type: 'SET_ERROR', payload: null })
     dispatch({ type: 'SET_LOADING', payload: true })
     try {
@@ -157,9 +161,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
-  }
+  }, [loadProfile])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     dispatch({ type: 'SET_ERROR', payload: null })
     try {
       await authService.signOut()
@@ -169,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_AUTH', payload: { session: null, authUser: null } })
     dispatch({ type: 'SET_PROFILE', payload: null })
     dispatch({ type: 'SET_LOADING', payload: false })
-  }
+  }, [])
 
   const value = useMemo(
     () => ({
@@ -179,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       refreshProfile,
     }),
-    [state],
+    [state, register, login, logout, refreshProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
