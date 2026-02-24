@@ -7,10 +7,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "git:init": "git init && git add . && git commit -m 'Initial commit'",
-    "git:commit": "git add . && git commit -m",
-    "git:status": "git status",
-    "git:log": "git log --oneline"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "check": "npm run typecheck && npm run lint"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
@@ -21,7 +21,11 @@
   "devDependencies": {
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "@vitejs/plugin-react": "^4.6.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "typescript": "^5.9.3",
     "vite": "^6.3.5",
     "vite-plugin-pwa": "^1.2.0"

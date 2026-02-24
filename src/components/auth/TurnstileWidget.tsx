@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-const SITE_KEY = '0x4AAAAAACge0fuB2pVDLuUY'
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string || '0x4AAAAAACge0fuB2pVDLuUY'
 
 interface Props {
   onVerify: (token: string) => void
@@ -22,6 +22,7 @@ export default function TurnstileWidget({ onVerify, onExpire }: Props) {
       if (!containerRef.current || !window.turnstile) return
       // Удалим предыдущий виджет если есть
       if (widgetIdRef.current) {
+        // eslint-disable-next-line no-empty
         try { window.turnstile.remove(widgetIdRef.current) } catch {}
       }
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
@@ -50,6 +51,7 @@ export default function TurnstileWidget({ onVerify, onExpire }: Props) {
 
     return () => {
       if (widgetIdRef.current && window.turnstile) {
+        // eslint-disable-next-line no-empty
         try { window.turnstile.remove(widgetIdRef.current) } catch {}
       }
     }

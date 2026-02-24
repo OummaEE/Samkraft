@@ -1,13 +1,10 @@
-# Supabase Configuration for Local Development
-# Get these values from: https://app.supabase.com/project/YOUR_PROJECT/settings/api
+# Wrangler local secrets — used by Cloudflare Pages Functions (server-side)
+# Copy this file to .dev.vars (never commit .dev.vars!)
+# For production, set these in Cloudflare Pages → Settings → Environment variables
 
-# Your Supabase project URL
-SUPABASE_URL=https://your-project-ref.supabase.co
+# Supabase — get from https://app.supabase.com/project/<your-project>/settings/api
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
 
-# Your Supabase anon/public key (safe to use in client)
-SUPABASE_ANON_KEY=your-anon-key-here
-
-# Notes:
-# 1. This file is in .gitignore and won't be committed
-# 2. For production, set these in Cloudflare Pages dashboard
-# 3. Replace the values above with your actual Supabase credentials
+# Cloudflare Turnstile secret — get from https://dash.cloudflare.com/?to=/:account/turnstile
+TURNSTILE_SECRET_KEY=your-turnstile-secret-key-here

@@ -5,14 +5,10 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
-    "types": [
-      "vite/client"
-    ],
+    "noEmit": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": ["vite/client"],
     "jsx": "react-jsx"
-  }
+  },
+  "include": ["src"]
 }
