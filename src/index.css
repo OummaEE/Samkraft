@@ -197,6 +197,19 @@ p { margin: 0 0 var(--space-sm); }
 .btn:hover { transform: translateY(-1px); }
 .btn:active { transform: translateY(0); }
 
+.btn:disabled,
+.btn[disabled] {
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.55;
+}
+.btn-primary:disabled {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
 .btn-primary {
   background: var(--ink);
   color: var(--white);

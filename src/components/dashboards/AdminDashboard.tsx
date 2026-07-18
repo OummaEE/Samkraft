@@ -111,7 +111,6 @@ export default function AdminDashboard() {
         website_url: form.website_url.trim() || null,
         attachment_url: attachmentUrl || null,
         attachment_name: attachmentName || null,
-        created_by_id: userId,
         creator_id: userId,
         location_municipality: profile.municipality,
         status: 'active',

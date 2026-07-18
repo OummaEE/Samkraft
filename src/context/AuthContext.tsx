@@ -43,7 +43,7 @@ function reducer(state: AuthState, action: AuthAction): AuthState {
 }
 
 type AuthContextValue = AuthState & {
-  register: (input: RegisterInput) => Promise<void>
+  register: (input: RegisterInput) => Promise<{ needsEmailConfirmation: boolean }>
   login: (input: LoginInput) => Promise<void>
   logout: () => Promise<void>
   refreshProfile: () => Promise<void>
@@ -123,22 +123,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const user = response.user
       if (!user) throw new Error('Registrering lyckades inte')
 
-      try {
-        await userService.createProfile({
-          id: user.id,
-          email: input.email,
-          fullName: input.fullName,
-          role: input.role,
-          municipality: input.municipality,
-        })
+      // Профиль создаёт серверный триггер (handle_new_user) из метаданных signUp.
+      // Клиентская запись не нужна: при включённом «Confirm email» сессии ещё нет,
+      // и такая запись всегда падала об RLS с ложной ошибкой.
+      if (response.session) {
         await loadProfile(user.id)
-      } catch (profileError: any) {
-        console.error('Profile creation failed, signing out:', profileError)
-        await authService.signOut()
-        dispatch({ type: 'SET_AUTH', payload: { session: null, authUser: null } })
-        dispatch({ type: 'SET_PROFILE', payload: null })
-        throw new Error('Kontot skapades men profilen kunde inte sparas. Försök igen.')
+        return { needsEmailConfirmation: false }
       }
+      return { needsEmailConfirmation: true }
     } catch (error: any) {
       dispatch({ type: 'SET_ERROR', payload: error.message || 'Kunde inte registrera användare.' })
       throw error

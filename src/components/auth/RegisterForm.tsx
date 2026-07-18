@@ -16,6 +16,7 @@ export default function RegisterForm() {
   const [municipality, setMunicipality] = useState('')
   const [municipalities, setMunicipalities] = useState<Municipality[]>([])
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [honeypot, setHoneypot] = useState('')
   const [formLoadedAt] = useState(Date.now())
@@ -83,7 +84,11 @@ export default function RegisterForm() {
         setError('Säkerhetskontrollen misslyckades. Vänta tills den laddas om och försök igen.')
         return
       }
-      await register({ email, password, fullName, role, municipality: municipality || undefined })
+      const result = await register({ email, password, fullName, role, municipality: municipality || undefined })
+      if (result.needsEmailConfirmation) {
+        setSuccessMessage('Kontot är skapat! Kolla din e-post och klicka på bekräftelselänken, logga sedan in.')
+        return
+      }
       navigate('/dashboard')
     } catch (err: any) {
       resetTurnstile()
@@ -154,6 +159,7 @@ export default function RegisterForm() {
       />
 
       {error && <p className="error">{error}</p>}
+      {successMessage && <p className="success">{successMessage}</p>}
 
       <button type="submit" className="btn btn-primary" disabled={loading || !turnstileToken}>
         {loading ? 'Skapar konto...' : 'Registrera'}

@@ -61,9 +61,11 @@ export async function createProject(input: {
   attachment_url?: string
   attachment_name?: string
 }) {
+  // В БД колонка называется creator_id (created_by_id не существует)
+  const { created_by_id, ...rest } = input
   const { error } = await supabase.from('projects').insert({
-    ...input,
-    creator_id: input.created_by_id,
+    ...rest,
+    creator_id: created_by_id,
     status: input.status || 'pending_review',
     created_at: new Date().toISOString(),
   })
@@ -132,7 +134,7 @@ export async function getProjectsByCreator(userId: string) {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .eq('created_by_id', userId)
+    .eq('creator_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) throw error
