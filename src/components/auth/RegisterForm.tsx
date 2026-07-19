@@ -2,8 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { supabase } from '../../services/supabaseClient'
-import type { Municipality, UserRole } from '../../types'
-import RoleSelector from './RoleSelector'
+import type { Municipality } from '../../types'
 import TurnstileWidget from './TurnstileWidget'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -12,7 +11,6 @@ export default function RegisterForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<UserRole>('volunteer')
   const [municipality, setMunicipality] = useState('')
   const [municipalities, setMunicipalities] = useState<Municipality[]>([])
   const [error, setError] = useState('')
@@ -54,7 +52,6 @@ export default function RegisterForm() {
     if (!fullName.trim()) return 'Fullständigt namn är obligatoriskt.'
     if (!emailRegex.test(email)) return 'Ange en giltig e-postadress.'
     if (password.length < 8) return 'Lösenord måste vara minst 8 tecken.'
-    if (!role) return 'Välj roll.'
     return ''
   }
 
@@ -84,7 +81,7 @@ export default function RegisterForm() {
         setError('Säkerhetskontrollen misslyckades. Vänta tills den laddas om och försök igen.')
         return
       }
-      const result = await register({ email, password, fullName, role, municipality: municipality || undefined })
+      const result = await register({ email, password, fullName, municipality: municipality || undefined })
       if (result.needsEmailConfirmation) {
         setSuccessMessage('Kontot är skapat! Kolla din e-post och klicka på bekräftelselänken, logga sedan in.')
         return
@@ -114,8 +111,6 @@ export default function RegisterForm() {
         <label htmlFor="register-password">Lösenord</label>
         <input id="register-password" type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
-
-      <RoleSelector value={role} onChange={setRole} />
 
       <div className="form-row">
         <label htmlFor="municipality">Kommun</label>

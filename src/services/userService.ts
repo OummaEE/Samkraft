@@ -8,31 +8,6 @@ function mapRole(role: string | null | undefined): UserRole {
   return 'volunteer'
 }
 
-export async function createProfile(params: {
-  id: string
-  email: string
-  fullName: string
-  role: UserRole
-  municipality?: string
-}) {
-  const username = params.email.split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()
-
-  const { error } = await supabase.from('users').upsert(
-    {
-      id: params.id,
-      email: params.email,
-      full_name: params.fullName,
-      role: params.role,
-      municipality: params.municipality ?? null,
-      username,
-      created_at: new Date().toISOString()
-    },
-    { onConflict: 'id' }
-  )
-
-  if (error) throw error
-}
-
 export async function getCurrentUserProfile(userId: string): Promise<UserProfile | null> {
   const { data, error } = await supabase
     .from('users')
@@ -56,14 +31,17 @@ export async function getCurrentUserProfile(userId: string): Promise<UserProfile
   }
 }
 
-export async function updateProfile(userId: string, updates: Partial<UserProfile>) {
+type EditableProfileFields = Pick<
+  UserProfile,
+  'full_name' | 'municipality' | 'bio' | 'avatar_url'
+>
+
+export async function updateProfile(userId: string, updates: EditableProfileFields) {
   const payload = {
     full_name: updates.full_name,
     municipality: updates.municipality,
     bio: updates.bio,
-    avatar_url: updates.avatar_url,
-    role: updates.role,
-    username: updates.username
+    avatar_url: updates.avatar_url
   }
 
   const { error } = await supabase.from('users').update(payload).eq('id', userId)

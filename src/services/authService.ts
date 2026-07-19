@@ -8,7 +8,6 @@ export async function signUp(input: RegisterInput) {
     options: {
       data: {
         full_name: input.fullName,
-        role: input.role,
         municipality: input.municipality ?? null
       }
     }

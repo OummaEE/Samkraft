@@ -122,7 +122,6 @@ export interface RegisterInput {
   email: string
   password: string
   fullName: string
-  role: UserRole
   municipality?: string
 }
 
